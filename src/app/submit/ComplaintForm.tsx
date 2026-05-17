@@ -5,7 +5,8 @@ import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   Car, UserCheck, Bus, UtensilsCrossed, Clock, Ticket, AlertTriangle, Lightbulb,
-  Upload, CheckCircle2, ExternalLink,
+  Camera, Check, ChevronRight, Hash, Shield, Share, X, MapPin, Sparkles,
+  PhoneOff, Frown, HelpCircle, Wind, Smartphone, Armchair, Navigation, UserX, Ban,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
@@ -18,16 +19,10 @@ interface Props {
   routes: Route[]
 }
 
-type DelaySubcategoryEntry = {
+type SubcategoryEntry = {
   value: string
   label: string
-  emoji: string
-}
-
-type SimpleSubcategoryEntry = {
-  value: string
-  label: string
-  emoji: string
+  icon:  LucideIcon
 }
 
 type CategoryEntry = {
@@ -39,10 +34,10 @@ type CategoryEntry = {
 }
 
 type BusSubcategoryEntry = {
-  value:                string
-  label:                string
-  emoji:                string
-  severity:             'HIGH' | 'MEDIUM'
+  value:                 string
+  label:                 string
+  icon:                  LucideIcon
+  severity:              'HIGH' | 'MEDIUM'
   isMaintenanceRequired: boolean
 }
 
@@ -50,49 +45,51 @@ type ConfirmationData = {
   referenceNumber: string
   routeName:       string
   travelDate:      string
+  departureTime:   string
   busNumber:       string
 }
 
 // ── Constants ────────────────────────────────────────────────
 
 const CATEGORIES: CategoryEntry[] = [
-  { value: 'DRIVER',              label: 'Driver',               icon: Car,            severity: 'HIGH'   },
-  { value: 'STEWARD',             label: 'Steward',              icon: UserCheck,      severity: 'MEDIUM' },
-  { value: 'BUS_CONDITION',       label: 'Bus Condition',        icon: Bus,            severity: 'HIGH'   },
-  { value: 'FOOD_DRINKS',         label: 'Food / Drinks',        icon: UtensilsCrossed, severity: 'HIGH'  },
-  { value: 'DELAY_TIMING',        label: 'Delay / Timing',       icon: Clock,          severity: 'MEDIUM' },
-  { value: 'TICKET_REFUND',       label: 'Ticket / Refund',      icon: Ticket,         severity: 'MEDIUM' },
-  { value: 'OTHER_SERIOUS',       label: 'Other / Serious',      icon: AlertTriangle,  severity: 'HIGH'   },
-  { value: 'SUGGESTION_FEEDBACK', label: 'Suggestion / Feedback', icon: Lightbulb,    severity: 'LOW', variant: 'suggestion' },
+  { value: 'DRIVER',              label: 'Driver',                icon: Car,             severity: 'HIGH'   },
+  { value: 'STEWARD',             label: 'Steward',               icon: UserCheck,       severity: 'MEDIUM' },
+  { value: 'BUS_CONDITION',       label: 'Bus Condition',         icon: Bus,             severity: 'HIGH'   },
+  { value: 'FOOD_DRINKS',         label: 'Food / Drinks',         icon: UtensilsCrossed, severity: 'HIGH'   },
+  { value: 'DELAY_TIMING',        label: 'Delay / Timing',        icon: Clock,           severity: 'MEDIUM' },
+  { value: 'TICKET_REFUND',       label: 'Ticket / Refund',       icon: Ticket,          severity: 'MEDIUM' },
+  { value: 'OTHER_SERIOUS',       label: 'Other / Serious',       icon: AlertTriangle,   severity: 'HIGH'   },
+  { value: 'SUGGESTION_FEEDBACK', label: 'Suggestion / Feedback', icon: Lightbulb,       severity: 'LOW', variant: 'suggestion' },
 ]
 
 const NON_SUGGESTION_COUNT = CATEGORIES.filter(c => !c.variant).length
 
 const BUS_CONDITION_SUBCATEGORIES: BusSubcategoryEntry[] = [
-  { value: 'AC_HEATING',           label: 'AC / Heating',         emoji: '❄️', severity: 'MEDIUM', isMaintenanceRequired: true  },
-  { value: 'ENTERTAINMENT_TABLET', label: 'Entertainment Tablet', emoji: '📱', severity: 'MEDIUM', isMaintenanceRequired: true  },
-  { value: 'SEAT',                 label: 'Seat',                 emoji: '🪑', severity: 'MEDIUM', isMaintenanceRequired: true  },
-  { value: 'CLEANLINESS',          label: 'Cleanliness',          emoji: '🧹', severity: 'HIGH',   isMaintenanceRequired: false },
+  { value: 'AC_HEATING',           label: 'AC / Heating',         icon: Wind,      severity: 'MEDIUM', isMaintenanceRequired: true  },
+  { value: 'ENTERTAINMENT_TABLET', label: 'Entertainment Tablet', icon: Smartphone, severity: 'MEDIUM', isMaintenanceRequired: true  },
+  { value: 'SEAT',                 label: 'Seat',                 icon: Armchair,  severity: 'MEDIUM', isMaintenanceRequired: true  },
+  { value: 'CLEANLINESS',          label: 'Cleanliness',          icon: Sparkles,  severity: 'HIGH',   isMaintenanceRequired: false },
 ]
 
-const DELAY_SUBCATEGORIES: DelaySubcategoryEntry[] = [
-  { value: 'LATE_DEPARTURE',  label: 'Late Departure',                 emoji: '⏰' },
-  { value: 'LATE_ARRIVAL',    label: 'Late Arrival',                   emoji: '🛣️' },
-  { value: 'EXCESSIVE_STOPS', label: 'Excessive Stops / Slow Journey', emoji: '🚏' },
+const DELAY_SUBCATEGORIES: SubcategoryEntry[] = [
+  { value: 'LATE_DEPARTURE',  label: 'Late Departure',                 icon: Clock      },
+  { value: 'LATE_ARRIVAL',    label: 'Late Arrival',                   icon: MapPin     },
+  { value: 'EXCESSIVE_STOPS', label: 'Excessive Stops / Slow Journey', icon: Navigation },
+  { value: 'OTHER',           label: 'Other',                          icon: HelpCircle },
 ]
 
-const DRIVER_SUBCATEGORIES: SimpleSubcategoryEntry[] = [
-  { value: 'RECKLESS_DRIVING', label: 'Reckless / dangerous driving',   emoji: '⚠️' },
-  { value: 'MOBILE_USE',       label: 'Mobile phone use while driving', emoji: '📵' },
-  { value: 'RUDE_BEHAVIOR',    label: 'Rude behavior',                  emoji: '😠' },
-  { value: 'OTHER',            label: 'Other',                          emoji: '❓' },
+const DRIVER_SUBCATEGORIES: SubcategoryEntry[] = [
+  { value: 'RECKLESS_DRIVING', label: 'Reckless / dangerous driving',   icon: AlertTriangle },
+  { value: 'MOBILE_USE',       label: 'Mobile phone use while driving', icon: PhoneOff      },
+  { value: 'RUDE_BEHAVIOR',    label: 'Rude behavior',                  icon: Frown         },
+  { value: 'OTHER',            label: 'Other',                          icon: HelpCircle    },
 ]
 
-const STEWARD_SUBCATEGORIES: SimpleSubcategoryEntry[] = [
-  { value: 'RUDE_BEHAVIOR',        label: 'Rude behavior',             emoji: '😠' },
-  { value: 'UNRESPONSIVE',         label: 'Unresponsive / not helping', emoji: '😴' },
-  { value: 'NOT_SERVING_PROPERLY', label: 'Not serving properly',      emoji: '❌' },
-  { value: 'OTHER',                label: 'Other',                     emoji: '❓' },
+const STEWARD_SUBCATEGORIES: SubcategoryEntry[] = [
+  { value: 'RUDE_BEHAVIOR',        label: 'Rude behavior',              icon: Frown      },
+  { value: 'UNRESPONSIVE',         label: 'Unresponsive / not helping', icon: UserX      },
+  { value: 'NOT_SERVING_PROPERLY', label: 'Not serving properly',       icon: Ban        },
+  { value: 'OTHER',                label: 'Other',                      icon: HelpCircle },
 ]
 
 const STEWARD_HEAD_KEYWORDS = ['steward head', 'main steward', 'supervisor', 'bara steward']
@@ -162,7 +159,199 @@ async function compressImage(file: File): Promise<File> {
   })
 }
 
-// ── Component ────────────────────────────────────────────────
+// ── UI primitives ─────────────────────────────────────────────
+
+function SectionHeader({ title, caption }: { title: string; caption: string }) {
+  return (
+    <div className="flex items-baseline justify-between border-b border-dashed border-[#C9C0A8] pb-2 mb-4">
+      <h2 className="text-[18px] font-semibold leading-tight">{title}</h2>
+      <p className="text-[11px] italic text-[#9AA59C] ml-3 shrink-0">{caption}</p>
+    </div>
+  )
+}
+
+function FieldLabel({ children, required, optional }: { children: React.ReactNode; required?: boolean; optional?: boolean }) {
+  return (
+    <div className="flex items-center gap-1.5 mb-1.5">
+      <label className="text-[13px] font-semibold">{children}</label>
+      {required && <span className="text-destructive text-xs leading-none">*</span>}
+      {optional && (
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full leading-none">
+          Optional
+        </span>
+      )}
+    </div>
+  )
+}
+
+function Hint({ children }: { children: React.ReactNode }) {
+  return <p className="text-[11.5px] text-[#9AA59C] mt-1.5">{children}</p>
+}
+
+function FieldError({ msg }: { msg?: string }) {
+  if (!msg) return null
+  return <p className="text-xs text-destructive mt-1">{msg}</p>
+}
+
+function SubcategoryReveal({ eyebrow, error, children }: { eyebrow: string; error?: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-muted rounded-[18px] p-4 animate-in slide-in-from-top-1 duration-200 ease-out">
+      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9AA59C] mb-3">{eyebrow}</p>
+      {children}
+      <FieldError msg={error} />
+    </div>
+  )
+}
+
+function SubPill({
+  sub, selected, onClick,
+}: {
+  sub: SubcategoryEntry | BusSubcategoryEntry
+  selected: boolean
+  onClick: () => void
+}) {
+  const Icon = sub.icon
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex flex-row items-center gap-3 px-3 py-3 rounded-xl border-2 transition-all min-h-[76px] text-left',
+        selected
+          ? 'border-primary bg-primary text-primary-foreground shadow-[0_4px_12px_hsl(167_71%_21%/0.28)]'
+          : 'border-input bg-card text-foreground active:bg-muted',
+      )}
+    >
+      <div className={cn(
+        'w-9 h-9 rounded-md flex items-center justify-center shrink-0',
+        selected ? 'bg-white/20' : 'bg-muted',
+      )}>
+        <Icon size={17} className={selected ? 'text-primary-foreground' : 'text-primary'} />
+      </div>
+      <span className="text-[13px] font-medium leading-tight">{sub.label}</span>
+    </button>
+  )
+}
+
+function SeverityBar({ severity }: { severity: 'HIGH' | 'MEDIUM' | 'LOW' }) {
+  const filled  = severity === 'HIGH' ? 3 : severity === 'MEDIUM' ? 2 : 1
+  const label   = severity === 'HIGH' ? 'High priority' : severity === 'MEDIUM' ? 'Medium priority' : 'Low priority'
+  const routing = severity === 'HIGH' ? 'Flagged to admin' : severity === 'MEDIUM' ? 'Sent to team lead' : 'Standard queue'
+  const pip     = severity === 'HIGH' ? 'bg-destructive' : severity === 'MEDIUM' ? 'bg-[#B47339]' : 'bg-primary'
+  return (
+    <div className="flex items-center gap-3 px-3 py-2.5 bg-muted rounded-xl">
+      <div className="flex gap-1 shrink-0">
+        {[1, 2, 3].map(n => (
+          <div key={n} className={cn('w-[7px] h-[18px] rounded-sm', n <= filled ? pip : 'bg-[#E1D9C5]')} />
+        ))}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[12px] font-semibold leading-none">{label}</p>
+        <p className="text-[11px] text-muted-foreground mt-0.5">{routing}</p>
+      </div>
+      <span className="font-mono-brand text-[9px] font-bold bg-foreground/10 text-muted-foreground px-1.5 py-0.5 rounded shrink-0">
+        AUTO
+      </span>
+    </div>
+  )
+}
+
+function parseRouteName(name: string) {
+  const sep   = name.match(/\s*[-–→]\s*/)
+  if (!sep) return { fromCode: name.slice(0, 3).toUpperCase(), from: name, toCode: '---', to: '' }
+  const parts = name.split(sep[0])
+  const from  = (parts[0] ?? '').trim()
+  const to    = (parts[1] ?? '').trim()
+  const code  = (s: string) => s.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || '???'
+  return { fromCode: code(from), from, toCode: code(to), to }
+}
+
+function JourneyStrip({ routeName, travelDate, departureTime, busNumber }: {
+  routeName: string; travelDate: string; departureTime: string; busNumber: string
+}) {
+  const route = routeName ? parseRouteName(routeName) : null
+  const displayDate = travelDate
+    ? new Date(travelDate + 'T00:00:00')
+        .toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })
+        .toUpperCase()
+    : '— — —'
+  return (
+    <div className="rounded-[18px] bg-card border border-[#E1D9C5] overflow-hidden">
+      <div className="flex items-center justify-between px-4 pt-3 pb-1.5">
+        <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-[#9AA59C]">YOUR JOURNEY</p>
+        <p className="font-mono-brand text-[10px] text-[#9AA59C]">{displayDate}</p>
+      </div>
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-1">
+        <div>
+          <p className="text-[26px] font-bold leading-none tabular-nums">
+            {route ? route.fromCode : '---'}
+          </p>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5 leading-tight truncate">
+            {route ? route.from : 'Origin'}
+          </p>
+        </div>
+        <div className="flex items-center gap-1 text-[#9AA59C] px-1">
+          <div className="w-7 border-t border-dashed border-[#C9C0A8]" />
+          <Bus size={13} className="text-primary shrink-0" />
+          <div className="w-7 border-t border-dashed border-[#C9C0A8]" />
+        </div>
+        <div className="text-right">
+          <p className="text-[26px] font-bold leading-none tabular-nums">
+            {route ? route.toCode : '---'}
+          </p>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5 leading-tight truncate">
+            {route ? route.to : 'Destination'}
+          </p>
+        </div>
+      </div>
+      {/* Perforation */}
+      <div className="relative flex items-center my-3">
+        <div className="absolute -left-3 w-6 h-6 rounded-full bg-background border border-[#E1D9C5]" />
+        <div className="w-full border-t border-dashed border-[#C9C0A8] mx-3" />
+        <div className="absolute -right-3 w-6 h-6 rounded-full bg-background border border-[#E1D9C5]" />
+      </div>
+      <div className="flex items-center justify-between px-4 pb-3">
+        <div>
+          <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">Departure</p>
+          <p className="font-mono-brand text-[13px] font-medium">{departureTime || '--:--'}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">Bus No.</p>
+          <p className="font-mono-brand text-[13px] font-medium">{busNumber || '—'}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Confirmation-screen primitives ────────────────────────────
+
+function SerrationEdge({ flip }: { flip?: boolean }) {
+  const pts = Array.from({ length: 21 }, (_, i) => `${i * 5},${i % 2 === 0 ? (flip ? 0 : 10) : (flip ? 10 : 0)}`).join(' ')
+  return (
+    <svg width="100%" height="10" viewBox="0 0 100 10" preserveAspectRatio="none" className="block w-full">
+      <polyline points={pts} fill="hsl(38 32% 93%)" stroke="hsl(42 28% 83%)" strokeWidth="0.4" />
+    </svg>
+  )
+}
+
+function Barcode({ value }: { value: string }) {
+  const segs: { w: number; dark: boolean }[] = []
+  for (const ch of value) {
+    const c = ch.charCodeAt(0)
+    segs.push({ w: (c % 3) + 1, dark: true  })
+    segs.push({ w: (c % 2) + 1, dark: false })
+  }
+  return (
+    <div className="flex items-stretch gap-[1.5px] h-8 justify-center overflow-hidden">
+      {segs.map((s, i) => (
+        <div key={i} style={{ width: `${s.w * 3}px` }} className={s.dark ? 'bg-foreground rounded-[1px]' : ''} />
+      ))}
+    </div>
+  )
+}
+
+// ── Main component ────────────────────────────────────────────
 
 export default function ComplaintForm({ routes }: Props) {
   const searchParams = useSearchParams()
@@ -329,7 +518,7 @@ export default function ComplaintForm({ routes }: Props) {
       p_is_about_steward_head:     flagStewardHead,
       p_bus_condition_subcategory: category === 'BUS_CONDITION' ? busConditionSubcategory || null : null,
       p_is_maintenance_required:   isMaintenanceRequired,
-      p_delay_subcategory:         category === 'DELAY_TIMING'  ? delaySubcategory  || null : null,
+      p_delay_subcategory:         category === 'DELAY_TIMING'  ? delaySubcategory   || null : null,
       p_driver_subcategory:        category === 'DRIVER'        ? driverSubcategory  || null : null,
       p_steward_subcategory:       category === 'STEWARD'       ? stewardSubcategory || null : null,
       p_driver_name:               category === 'DRIVER'        ? driverName.trim()  || null : null,
@@ -349,521 +538,648 @@ export default function ComplaintForm({ routes }: Props) {
       referenceNumber: complaint.reference_number,
       routeName:       routes.find(r => r.id === routeId)?.name ?? '',
       travelDate,
+      departureTime,
       busNumber:       busNumber.trim() || 'Not provided',
     })
     setSubmitting(false)
   }
 
+  // ── Derived ───────────────────────────────────────────────
+
+  let computedSeverity: 'HIGH' | 'MEDIUM' | 'LOW' | null = null
+  if (category) {
+    const cat = CATEGORIES.find(c => c.value === category)
+    if (cat) {
+      computedSeverity = cat.severity
+      if (category === 'BUS_CONDITION' && busConditionSubcategory) {
+        const sub = BUS_CONDITION_SUBCATEGORIES.find(s => s.value === busConditionSubcategory)
+        if (sub) computedSeverity = sub.severity
+      }
+    }
+  }
+
   // ── Confirmation screen ──────────────────────────────────
 
   if (confirmation) {
+    const route = parseRouteName(confirmation.routeName)
+    const fmtDate = confirmation.travelDate
+      ? new Date(confirmation.travelDate + 'T00:00:00')
+          .toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })
+      : ''
+    const fmtDateShort = confirmation.travelDate
+      ? new Date(confirmation.travelDate + 'T00:00:00')
+          .toLocaleDateString('en-PK', { day: 'numeric', month: 'short' }).toUpperCase()
+      : '—'
+
     return (
-      <div className="min-h-screen bg-green-50 flex flex-col items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md">
-          <div className="flex flex-col items-center text-center mb-6">
-            <CheckCircle2 size={56} className="text-green-500 mb-3" />
-            <h1 className="text-xl font-bold text-gray-900">Complaint Received</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Aap ki complaint hamare paas pahunch gayi hai
-            </p>
-          </div>
+      <div className="min-h-screen bg-background flex flex-col items-center px-4 py-10">
 
-          <div className="bg-green-50 rounded-xl p-4 text-center mb-5">
-            <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Reference Number</p>
-            <p className="text-3xl font-bold text-green-700 tracking-wider font-mono">
-              {confirmation.referenceNumber}
-            </p>
+        {/* Check mark */}
+        <div className="relative mb-5 flex items-center justify-center">
+          <div className="absolute w-20 h-20 rounded-full border border-primary/15" />
+          <div className="absolute w-[68px] h-[68px] rounded-full border border-primary/25" />
+          <div className="relative w-[56px] h-[56px] rounded-full bg-primary flex items-center justify-center z-10">
+            <Check size={26} className="text-primary-foreground" />
           </div>
+        </div>
 
-          <div className="space-y-0 text-sm mb-5 border rounded-xl overflow-hidden divide-y">
-            <div className="flex justify-between px-4 py-3">
-              <span className="text-gray-500">Route</span>
-              <span className="font-medium">{confirmation.routeName}</span>
+        <h1 className="text-[26px] font-semibold tracking-tight mb-1">Complaint Received</h1>
+        <p className="text-[13px] text-muted-foreground mb-8 text-center">
+          Aap ki complaint hamare paas pahunch gayi hai
+        </p>
+
+        {/* Receipt card */}
+        <div className="w-full max-w-sm">
+          <SerrationEdge />
+          <div className="bg-card border-x border-[#E1D9C5] px-5">
+
+            {/* Brand row */}
+            <div className="flex items-center justify-between py-4 border-b border-[#E1D9C5]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
+                  <Bus size={14} className="text-primary-foreground" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold tracking-[0.08em] uppercase leading-none">SUBHAN TRAVELS</p>
+                  <p className="text-[9px] text-muted-foreground mt-0.5 leading-none">COMPLAINT RECEIPT</p>
+                </div>
+              </div>
+              <p className="font-mono-brand text-[10px] text-muted-foreground">{fmtDate.toUpperCase()}</p>
             </div>
-            <div className="flex justify-between px-4 py-3">
-              <span className="text-gray-500">Travel Date</span>
-              <span className="font-medium">
-                {new Date(confirmation.travelDate + 'T00:00:00').toLocaleDateString('en-PK', {
-                  day: 'numeric', month: 'long', year: 'numeric',
-                })}
-              </span>
+
+            {/* Route viz */}
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 py-4">
+              <div>
+                <p className="text-[24px] font-bold leading-none">{route.fromCode}</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1 leading-tight truncate">{route.from}</p>
+              </div>
+              <div className="flex items-center gap-1 text-[#9AA59C]">
+                <div className="w-6 border-t border-dashed border-[#C9C0A8]" />
+                <Bus size={13} className="text-primary shrink-0" />
+                <div className="w-6 border-t border-dashed border-[#C9C0A8]" />
+              </div>
+              <div className="text-right">
+                <p className="text-[24px] font-bold leading-none">{route.toCode}</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1 leading-tight truncate">{route.to}</p>
+              </div>
             </div>
-            <div className="flex justify-between px-4 py-3">
-              <span className="text-gray-500">Bus Number</span>
-              <span className="font-medium">{confirmation.busNumber}</span>
+
+            {/* Perforation */}
+            <div className="relative flex items-center my-1">
+              <div className="absolute -left-5 w-9 h-9 rounded-full bg-background border border-[#E1D9C5]" />
+              <div className="flex-1 border-t border-dashed border-[#C9C0A8] mx-5" />
+              <div className="absolute -right-5 w-9 h-9 rounded-full bg-background border border-[#E1D9C5]" />
             </div>
+
+            {/* Reference block */}
+            <div className="text-center py-5">
+              <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-[#9AA59C] mb-1.5">REFERENCE NUMBER</p>
+              <p className="font-mono-brand text-[26px] font-bold text-primary tracking-widest leading-none">
+                {confirmation.referenceNumber}
+              </p>
+              <p className="text-[11px] italic text-[#9AA59C] mt-2">Screenshot to track later</p>
+            </div>
+
+            {/* Trip details */}
+            <div className="grid grid-cols-3 gap-2 pb-4 text-center">
+              <div>
+                <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">Date</p>
+                <p className="font-mono-brand text-[11px] font-medium">{fmtDateShort}</p>
+              </div>
+              <div>
+                <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">Time</p>
+                <p className="font-mono-brand text-[11px] font-medium">{confirmation.departureTime || '—'}</p>
+              </div>
+              <div>
+                <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">Bus</p>
+                <p className="font-mono-brand text-[11px] font-medium">{confirmation.busNumber}</p>
+              </div>
+            </div>
+
+            {/* Barcode */}
+            <div className="pb-5">
+              <Barcode value={confirmation.referenceNumber} />
+              <p className="font-mono-brand text-[9px] tracking-[0.3em] text-center text-[#9AA59C] mt-1.5">
+                {confirmation.referenceNumber}
+              </p>
+            </div>
+
           </div>
+          <SerrationEdge flip />
+        </div>
 
-          <div className="bg-blue-50 rounded-xl p-4 text-sm text-blue-800 mb-4">
-            <p className="font-semibold mb-1">We have received your complaint.</p>
-            <p>Our team will contact you within 24 hours.</p>
+        {/* What happens next */}
+        <div className="w-full max-w-sm mt-6 bg-muted rounded-[18px] p-5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9AA59C] mb-4">What happens next</p>
+          <div className="relative">
+            <div className="absolute left-[13px] top-7 bottom-7 w-px bg-border" />
+            {[
+              { done: true,  title: 'Auto-triaged',           sub: 'Sent to the right team in seconds' },
+              { done: false, title: 'We investigate',         sub: 'Within 24 hours, on WhatsApp'       },
+              { done: false, title: 'Resolution + follow-up', sub: 'Plus a satisfaction check'          },
+            ].map((step, i) => (
+              <div key={i} className={cn('flex gap-3', i < 2 && 'pb-5')}>
+                <div className={cn(
+                  'relative z-10 w-7 h-7 rounded-full flex items-center justify-center shrink-0',
+                  step.done ? 'bg-primary' : 'bg-card border border-border',
+                )}>
+                  {step.done
+                    ? <Check size={13} className="text-primary-foreground" />
+                    : <span className="text-[11px] font-bold text-muted-foreground">{i + 1}</span>
+                  }
+                </div>
+                <div className="pt-0.5">
+                  <p className="text-[13px] font-semibold leading-tight">{step.title}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{step.sub}</p>
+                </div>
+              </div>
+            ))}
           </div>
+        </div>
 
-          <p className="text-center text-xs text-gray-400 mb-5">
-            Please screenshot this page for your records
-          </p>
-
+        {/* Buttons */}
+        <div className="w-full max-w-sm mt-4 grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({ text: `My Subhan Travels complaint ref: ${confirmation.referenceNumber}` }).catch(() => {})
+              }
+            }}
+            className="h-[50px] rounded-xl border-2 border-primary text-primary font-semibold text-sm flex items-center justify-center gap-2"
+          >
+            <Share size={16} />
+            Share
+          </button>
           <a
             href={`/status/${confirmation.referenceNumber}`}
-            className="flex items-center justify-center gap-2 w-full h-12 rounded-xl bg-primary text-primary-foreground font-semibold text-sm"
+            className="h-[50px] rounded-xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2"
           >
-            <ExternalLink size={16} />
-            Track complaint status
+            Track status
+            <ChevronRight size={16} />
           </a>
         </div>
+
+        <p className="text-center text-xs text-[#9AA59C] mt-3 mb-1">
+          Please screenshot this page for your records
+        </p>
+
+        <button
+          type="button"
+          onClick={() => setConfirmation(null)}
+          className="text-sm underline text-muted-foreground mt-1"
+        >
+          ← Back to the form
+        </button>
+
       </div>
     )
   }
 
-  // ── Form ────────────────────────────────────────────────
+  // ── Form ─────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      <div className="bg-primary text-primary-foreground text-center py-3 px-4 text-sm font-medium">
-        Your complaint goes directly to management
+    <div className="min-h-screen bg-background overflow-x-hidden">
+
+      {/* Trust strip */}
+      <div className="bg-primary text-primary-foreground flex items-center justify-center gap-2 h-10 px-4 text-xs font-medium">
+        <Shield size={13} className="shrink-0" />
+        <span>Your complaint goes directly to management</span>
       </div>
 
-      <div className="w-full max-w-lg mx-auto px-4 pt-6 pb-16 overflow-hidden">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Submit a Complaint</h1>
-        <p className="text-sm text-gray-500 mb-6">Subhan Complaints — شکایت درج کریں</p>
-
-        <form onSubmit={handleSubmit} noValidate className="space-y-5 w-full">
-
-          {/* Phone */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Mobile Number <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="tel"
-              inputMode="numeric"
-              value={phone}
-              onChange={handlePhoneChange}
-              placeholder="03XX-XXXXXXX"
-              className={cn(
-                'w-full max-w-full h-12 px-4 rounded-xl border bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary',
-                errors.phone ? 'border-red-400' : 'border-gray-300',
-              )}
-            />
-            <p className="text-xs text-gray-400 mt-1">Apna mobile number likhein</p>
-            {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
+      {/* Hero */}
+      <div className="w-full max-w-lg mx-auto px-5 pt-5 pb-1">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-11 h-11 rounded-full bg-primary flex items-center justify-center shrink-0">
+            <Bus size={20} className="text-primary-foreground" />
           </div>
-
-          {/* Route */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Route <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={routeId}
-              onChange={handleRouteChange}
-              className={cn(
-                'w-full max-w-full h-12 px-4 rounded-xl border bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary appearance-none',
-                errors.routeId ? 'border-red-400' : 'border-gray-300',
-              )}
-            >
-              <option value="">Select route...</option>
-              {routes.map(r => (
-                <option key={r.id} value={r.id}>{r.name}</option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-400 mt-1">Apna safar ka rasta chunein</p>
-            {errors.routeId && <p className="text-xs text-red-500 mt-1">{errors.routeId}</p>}
+          <div className="flex-1 min-w-0">
+            <p className="text-[17px] font-bold tracking-[0.06em] uppercase leading-tight">SUBHAN TRAVELS</p>
+            <p className="text-[12px] text-muted-foreground leading-tight">Passenger complaints · Faisalabad</p>
           </div>
-
-          {/* Travel Date */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Date of Travel <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              value={travelDate}
-              min={getMinDateStr()}
-              max={getTodayStr()}
-              onChange={e => {
-                setTravelDate(e.target.value)
-                if (errors.travelDate) setErrors(prev => ({ ...prev, travelDate: '' }))
-              }}
-              className={cn(
-                'w-full max-w-full h-12 px-4 rounded-xl border bg-white text-base appearance-none focus:outline-none focus:ring-2 focus:ring-primary',
-                errors.travelDate ? 'border-red-400' : 'border-gray-300',
-              )}
-            />
-            <p className="text-xs text-gray-400 mt-1">Jis din safar kiya</p>
-            {errors.travelDate && <p className="text-xs text-red-500 mt-1">{errors.travelDate}</p>}
+          <div className="border-l border-dashed border-[#C9C0A8] pl-3 text-right shrink-0">
+            <p className="text-[9px] font-bold tracking-widest uppercase text-[#9AA59C]">EST</p>
+            <p className="font-mono-brand text-[13px] font-bold leading-tight">2014</p>
           </div>
+        </div>
+        <h1 className="text-[30px] font-semibold tracking-tight leading-tight">Submit a Complaint</h1>
+        <p className="text-[13px] text-muted-foreground mt-1">Subhan Complaints — شکایت درج کریں</p>
+        <p className="text-[12px] italic text-[#9AA59C] mt-0.5">Hum sun rahay hain</p>
+      </div>
 
-          {/* Departure Time */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Departure Time <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="time"
-              value={departureTime}
-              onChange={e => {
-                setDepartureTime(e.target.value)
-                if (errors.departureTime) setErrors(prev => ({ ...prev, departureTime: '' }))
-              }}
-              className={cn(
-                'w-full max-w-full h-12 px-4 rounded-xl border bg-white text-base appearance-none focus:outline-none focus:ring-2 focus:ring-primary',
-                errors.departureTime ? 'border-red-400' : 'border-gray-300',
-              )}
-            />
-            <p className="text-xs text-gray-400 mt-1">Tap to select — stored as 24-hour, shown as 12-hour on your phone</p>
-            {errors.departureTime && <p className="text-xs text-red-500 mt-1">{errors.departureTime}</p>}
-          </div>
+      {/* Form — submit button is outside via form="cf" */}
+      <form id="cf" onSubmit={handleSubmit} noValidate className="w-full max-w-lg mx-auto px-5 pb-32">
 
-          {/* Bus Number */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Bus Number
-            </label>
-            <input
-              type="text"
-              value={busNumber}
-              onChange={e => setBusNumber(e.target.value)}
-              placeholder="e.g. 47"
-              className="w-full max-w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <p className="text-xs text-gray-400 mt-1">
-              Ticket ya bus ke andar likha number. Agar maloom nahi, &quot;unknown&quot; likhein
-            </p>
-          </div>
+        {/* ── Section: Your contact ─────────────────────── */}
+        <div className="pt-6">
+          <SectionHeader title="Your contact" caption="Taake hum aap se rabta kar sakein" />
+          <div className="space-y-4">
 
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Complaint Category <span className="text-red-500">*</span>
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {CATEGORIES.map((cat, i) => {
-                const Icon         = cat.icon
-                const selected     = category === cat.value
-                const isSuggestion = cat.variant === 'suggestion'
-                const isWide       = isSuggestion || (!isSuggestion && i === NON_SUGGESTION_COUNT - 1 && NON_SUGGESTION_COUNT % 2 !== 0)
-                return (
-                  <button
-                    key={cat.value}
-                    type="button"
-                    onClick={() => handleCategorySelect(cat.value)}
-                    className={cn(
-                      'flex flex-col items-center justify-center gap-2 rounded-xl border-2 font-medium text-sm transition-colors min-h-[64px]',
-                      isWide && 'col-span-2',
-                      isSuggestion && selected
-                        ? 'border-teal-500 bg-teal-500 text-white'
-                        : isSuggestion
-                        ? 'border-teal-200 bg-teal-50 text-teal-700 active:bg-teal-100'
-                        : selected
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50',
-                    )}
-                  >
-                    <Icon size={22} />
-                    <span className="text-center leading-tight">{cat.label}</span>
-                  </button>
-                )
-              })}
-            </div>
-            {errors.category && <p className="text-xs text-red-500 mt-2">{errors.category}</p>}
-          </div>
-
-          {/* Driver subcategory */}
-          {category === 'DRIVER' && (
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  What went wrong? <span className="text-red-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {DRIVER_SUBCATEGORIES.map((sub, i) => {
-                    const selected  = driverSubcategory === sub.value
-                    const isLastOdd = i === DRIVER_SUBCATEGORIES.length - 1 && DRIVER_SUBCATEGORIES.length % 2 !== 0
-                    return (
-                      <button
-                        key={sub.value}
-                        type="button"
-                        onClick={() => {
-                          setDriverSubcategory(sub.value)
-                          if (errors.driverSubcategory) setErrors(prev => ({ ...prev, driverSubcategory: '' }))
-                        }}
-                        className={cn(
-                          'flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl border-2 font-medium text-sm transition-colors',
-                          isLastOdd && 'col-span-2 flex-row gap-3 py-3',
-                          selected
-                            ? 'border-primary bg-primary text-primary-foreground'
-                            : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50',
-                        )}
-                      >
-                        <span className="text-2xl leading-none">{sub.emoji}</span>
-                        <span className="text-center leading-tight">{sub.label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-                {errors.driverSubcategory && (
-                  <p className="text-xs text-red-500 mt-2">{errors.driverSubcategory}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Driver name <span className="text-gray-400 font-normal">(optional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={driverName}
-                  onChange={e => setDriverName(e.target.value)}
-                  placeholder="e.g. Muhammad Ahmed"
-                  className="w-full max-w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  Agar yaad ho — ticket ya bus ke andar likha hota hai
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Steward subcategory + steward head checkbox */}
-          {category === 'STEWARD' && (
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  What went wrong? <span className="text-red-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {STEWARD_SUBCATEGORIES.map((sub, i) => {
-                    const selected  = stewardSubcategory === sub.value
-                    const isLastOdd = i === STEWARD_SUBCATEGORIES.length - 1 && STEWARD_SUBCATEGORIES.length % 2 !== 0
-                    return (
-                      <button
-                        key={sub.value}
-                        type="button"
-                        onClick={() => {
-                          setStewardSubcategory(sub.value)
-                          if (errors.stewardSubcategory) setErrors(prev => ({ ...prev, stewardSubcategory: '' }))
-                        }}
-                        className={cn(
-                          'flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl border-2 font-medium text-sm transition-colors',
-                          isLastOdd && 'col-span-2 flex-row gap-3 py-3',
-                          selected
-                            ? 'border-primary bg-primary text-primary-foreground'
-                            : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50',
-                        )}
-                      >
-                        <span className="text-2xl leading-none">{sub.emoji}</span>
-                        <span className="text-center leading-tight">{sub.label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-                {errors.stewardSubcategory && (
-                  <p className="text-xs text-red-500 mt-2">{errors.stewardSubcategory}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Steward name <span className="text-gray-400 font-normal">(optional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={stewardName}
-                  onChange={e => setStewardName(e.target.value)}
-                  placeholder="e.g. Ali Hassan"
-                  className="w-full max-w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  Agar yaad ho — ticket ya bus ke andar likha hota hai
-                </p>
-              </div>
-
-              <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <input
-                  id="steward-head-flag"
-                  type="checkbox"
-                  checked={isAboutStewardHead}
-                  onChange={e => setIsAboutStewardHead(e.target.checked)}
-                  className="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300 accent-primary"
-                />
-                <label htmlFor="steward-head-flag" className="text-sm text-amber-900">
-                  <span className="font-semibold block">This complaint is about the steward head</span>
-                  <span className="text-xs text-amber-700">Kya yeh complaint bara steward ke baray mein hai?</span>
-                </label>
-              </div>
-            </div>
-          )}
-
-          {/* Bus Condition subcategory */}
-          {category === 'BUS_CONDITION' && (
+            {/* Phone */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                What specifically? <span className="text-red-500">*</span>
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {BUS_CONDITION_SUBCATEGORIES.map(sub => {
-                  const selected = busConditionSubcategory === sub.value
+              <FieldLabel required>Mobile Number</FieldLabel>
+              <div className={cn(
+                'flex h-[52px] rounded-xl border bg-card overflow-hidden transition-colors',
+                errors.phone ? 'border-destructive' : 'border-input',
+              )}>
+                <div className="flex items-center justify-center px-3.5 border-r border-input bg-muted/60 shrink-0">
+                  <span className="font-mono-brand text-[15px] font-semibold text-muted-foreground select-none">+92</span>
+                </div>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  placeholder="03XX-XXXXXXX"
+                  className="flex-1 px-3 text-base bg-transparent focus:outline-none focus:ring-4 focus:ring-primary/10 rounded-r-xl"
+                />
+              </div>
+              <Hint>Apna mobile number likhein</Hint>
+              <FieldError msg={errors.phone} />
+            </div>
+
+            {/* Passenger Name */}
+            <div>
+              <FieldLabel optional>Your Name</FieldLabel>
+              <input
+                type="text"
+                value={passengerName}
+                onChange={e => setPassengerName(e.target.value)}
+                placeholder="Full name"
+                className="w-full h-[52px] px-4 rounded-xl border border-input bg-card text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary"
+              />
+              <Hint>Optional — agar batana chahein</Hint>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ── Section: Your trip ───────────────────────── */}
+        <div className="pt-8">
+          <SectionHeader title="Your trip" caption="Safar ki tafseel" />
+
+          <JourneyStrip
+            routeName={routes.find(r => r.id === routeId)?.name ?? ''}
+            travelDate={travelDate}
+            departureTime={departureTime}
+            busNumber={busNumber}
+          />
+
+          <div className="space-y-4 mt-4">
+
+            {/* Route */}
+            <div>
+              <FieldLabel required>Route</FieldLabel>
+              <div className={cn(
+                'relative h-[52px] rounded-xl border bg-card overflow-hidden',
+                errors.routeId ? 'border-destructive' : 'border-input',
+              )}>
+                <Bus size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                <select
+                  value={routeId}
+                  onChange={handleRouteChange}
+                  className="w-full h-full pl-10 pr-4 bg-transparent text-base focus:outline-none focus:ring-4 focus:ring-primary/10 appearance-none cursor-pointer"
+                >
+                  <option value="">Select route...</option>
+                  {routes.map(r => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
+              <Hint>Apna safar ka rasta chunein</Hint>
+              <FieldError msg={errors.routeId} />
+            </div>
+
+            {/* Travel Date + Departure Time */}
+            <div className="grid grid-cols-[1.2fr_1fr] gap-3">
+              <div>
+                <FieldLabel required>Date of Travel</FieldLabel>
+                <div className={cn(
+                  'h-[52px] rounded-xl border bg-card overflow-hidden',
+                  errors.travelDate ? 'border-destructive' : 'border-input',
+                )}>
+                  <input
+                    type="date"
+                    value={travelDate}
+                    min={getMinDateStr()}
+                    max={getTodayStr()}
+                    onChange={e => {
+                      setTravelDate(e.target.value)
+                      if (errors.travelDate) setErrors(prev => ({ ...prev, travelDate: '' }))
+                    }}
+                    className="w-full h-full px-3 bg-transparent text-base appearance-none focus:outline-none focus:ring-4 focus:ring-primary/10"
+                  />
+                </div>
+                <FieldError msg={errors.travelDate} />
+              </div>
+              <div>
+                <FieldLabel required>Departure Time</FieldLabel>
+                <div className={cn(
+                  'relative h-[52px] rounded-xl border bg-card overflow-hidden',
+                  errors.departureTime ? 'border-destructive' : 'border-input',
+                )}>
+                  <Clock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                  <input
+                    type="time"
+                    value={departureTime}
+                    onChange={e => {
+                      setDepartureTime(e.target.value)
+                      if (errors.departureTime) setErrors(prev => ({ ...prev, departureTime: '' }))
+                    }}
+                    className="w-full h-full pl-8 pr-2 bg-transparent text-base appearance-none focus:outline-none focus:ring-4 focus:ring-primary/10"
+                  />
+                </div>
+                <FieldError msg={errors.departureTime} />
+              </div>
+            </div>
+            <Hint>Tap to select — stored as 24-hour, shown as 12-hour on your phone</Hint>
+
+            {/* Bus Number */}
+            <div>
+              <FieldLabel>Bus Number</FieldLabel>
+              <div className="relative h-[52px] rounded-xl border border-input bg-card overflow-hidden">
+                <Hash size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  value={busNumber}
+                  onChange={e => setBusNumber(e.target.value)}
+                  placeholder="e.g. 47"
+                  className="w-full h-full pl-9 pr-4 bg-transparent text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary"
+                />
+              </div>
+              <Hint>
+                Ticket ya bus ke andar likha number. Agar maloom nahi, &quot;unknown&quot; likhein
+              </Hint>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ── Section: What happened? ───────────────────── */}
+        <div className="pt-8">
+          <SectionHeader title="What happened?" caption="Kya masla hua?" />
+          <div className="space-y-4">
+
+            {/* Category grid */}
+            <div>
+              <FieldLabel required>Complaint Category</FieldLabel>
+              <div className="grid grid-cols-2 gap-2.5">
+                {CATEGORIES.map((cat, i) => {
+                  const Icon         = cat.icon
+                  const selected     = category === cat.value
+                  const isSugg       = cat.variant === 'suggestion'
+                  const isWide       = isSugg || (!isSugg && i === NON_SUGGESTION_COUNT - 1 && NON_SUGGESTION_COUNT % 2 !== 0)
+                  const selClass     = isSugg
+                    ? 'bg-[#B47339] border-[#B47339] text-white shadow-[0_6px_16px_#B4733940]'
+                    : 'bg-primary border-primary text-primary-foreground shadow-[0_6px_16px_hsl(167_71%_21%/0.25)]'
+                  const unselClass   = isSugg
+                    ? 'border-[#F2E4CF] bg-[#F2E4CF] text-[#B47339]'
+                    : 'border-input bg-card text-foreground active:bg-muted'
                   return (
                     <button
-                      key={sub.value}
+                      key={cat.value}
                       type="button"
+                      onClick={() => handleCategorySelect(cat.value)}
+                      className={cn(
+                        'relative flex flex-col items-start justify-end p-3 rounded-[18px] border-2 transition-all min-h-[92px]',
+                        isWide && 'col-span-2',
+                        selected ? selClass : unselClass,
+                      )}
+                    >
+                      {selected && (
+                        <div className="absolute top-2.5 right-2.5 w-[18px] h-[18px] rounded-full bg-white/25 flex items-center justify-center">
+                          <Check size={10} />
+                        </div>
+                      )}
+                      <div className={cn(
+                        'w-[38px] h-[38px] rounded-md flex items-center justify-center mb-2',
+                        selected ? 'bg-white/20' : 'bg-muted',
+                      )}>
+                        <Icon size={20} className={selected ? undefined : 'text-primary'} />
+                      </div>
+                      <span className="text-[13.5px] font-semibold leading-tight">{cat.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+              <FieldError msg={errors.category} />
+            </div>
+
+            {/* Driver subcategory */}
+            {category === 'DRIVER' && (
+              <SubcategoryReveal eyebrow="DRIVER · specifics" error={errors.driverSubcategory}>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {DRIVER_SUBCATEGORIES.map(sub => (
+                    <SubPill
+                      key={sub.value}
+                      sub={sub}
+                      selected={driverSubcategory === sub.value}
+                      onClick={() => {
+                        setDriverSubcategory(sub.value)
+                        if (errors.driverSubcategory) setErrors(prev => ({ ...prev, driverSubcategory: '' }))
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="mt-3">
+                  <label className="block text-[13px] font-semibold mb-1.5">
+                    Driver name <span className="text-muted-foreground font-normal text-xs">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={driverName}
+                    onChange={e => setDriverName(e.target.value)}
+                    placeholder="e.g. Muhammad Ahmed"
+                    className="w-full h-[52px] px-4 rounded-xl border border-input bg-card text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary"
+                  />
+                  <p className="text-[11.5px] text-[#9AA59C] mt-1.5">
+                    Agar yaad ho — ticket ya bus ke andar likha hota hai
+                  </p>
+                </div>
+              </SubcategoryReveal>
+            )}
+
+            {/* Steward subcategory + head flag */}
+            {category === 'STEWARD' && (
+              <SubcategoryReveal eyebrow="STEWARD · specifics" error={errors.stewardSubcategory}>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {STEWARD_SUBCATEGORIES.map(sub => (
+                    <SubPill
+                      key={sub.value}
+                      sub={sub}
+                      selected={stewardSubcategory === sub.value}
+                      onClick={() => {
+                        setStewardSubcategory(sub.value)
+                        if (errors.stewardSubcategory) setErrors(prev => ({ ...prev, stewardSubcategory: '' }))
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="mt-3">
+                  <label className="block text-[13px] font-semibold mb-1.5">
+                    Steward name <span className="text-muted-foreground font-normal text-xs">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={stewardName}
+                    onChange={e => setStewardName(e.target.value)}
+                    placeholder="e.g. Ali Hassan"
+                    className="w-full h-[52px] px-4 rounded-xl border border-input bg-card text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary"
+                  />
+                  <p className="text-[11.5px] text-[#9AA59C] mt-1.5">
+                    Agar yaad ho — ticket ya bus ke andar likha hota hai
+                  </p>
+                </div>
+                <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 mt-3">
+                  <input
+                    id="steward-head-flag"
+                    type="checkbox"
+                    checked={isAboutStewardHead}
+                    onChange={e => setIsAboutStewardHead(e.target.checked)}
+                    className="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300 accent-primary"
+                  />
+                  <label htmlFor="steward-head-flag" className="text-sm text-amber-900">
+                    <span className="font-semibold block">This complaint is about the steward head</span>
+                    <span className="text-xs text-amber-700">Kya yeh complaint bara steward ke baray mein hai?</span>
+                  </label>
+                </div>
+              </SubcategoryReveal>
+            )}
+
+            {/* Bus Condition subcategory */}
+            {category === 'BUS_CONDITION' && (
+              <SubcategoryReveal eyebrow="BUS CONDITION · specifics" error={errors.busConditionSubcategory}>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {BUS_CONDITION_SUBCATEGORIES.map(sub => (
+                    <SubPill
+                      key={sub.value}
+                      sub={sub}
+                      selected={busConditionSubcategory === sub.value}
                       onClick={() => {
                         setBusConditionSubcategory(sub.value)
                         if (errors.busConditionSubcategory)
                           setErrors(prev => ({ ...prev, busConditionSubcategory: '' }))
                       }}
-                      className={cn(
-                        'flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl border-2 font-medium text-sm transition-colors',
-                        selected
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50',
-                      )}
-                    >
-                      <span className="text-2xl leading-none">{sub.emoji}</span>
-                      <span className="text-center leading-tight">{sub.label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-              {errors.busConditionSubcategory && (
-                <p className="text-xs text-red-500 mt-2">{errors.busConditionSubcategory}</p>
-              )}
-            </div>
-          )}
+                    />
+                  ))}
+                </div>
+              </SubcategoryReveal>
+            )}
 
-          {/* Delay subcategory */}
-          {category === 'DELAY_TIMING' && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                What type of delay? <span className="text-red-500">*</span>
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {DELAY_SUBCATEGORIES.map((sub, i) => {
-                  const selected  = delaySubcategory === sub.value
-                  const isLastOdd = i === DELAY_SUBCATEGORIES.length - 1 && DELAY_SUBCATEGORIES.length % 2 !== 0
-                  return (
-                    <button
+            {/* Delay subcategory */}
+            {category === 'DELAY_TIMING' && (
+              <SubcategoryReveal eyebrow="DELAY / TIMING · specifics" error={errors.delaySubcategory}>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {DELAY_SUBCATEGORIES.map(sub => (
+                    <SubPill
                       key={sub.value}
-                      type="button"
+                      sub={sub}
+                      selected={delaySubcategory === sub.value}
                       onClick={() => {
                         setDelaySubcategory(sub.value)
                         if (errors.delaySubcategory)
                           setErrors(prev => ({ ...prev, delaySubcategory: '' }))
                       }}
-                      className={cn(
-                        'flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl border-2 font-medium text-sm transition-colors',
-                        isLastOdd && 'col-span-2 flex-row gap-3 py-3',
-                        selected
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50',
-                      )}
-                    >
-                      <span className="text-2xl leading-none">{sub.emoji}</span>
-                      <span className="text-center leading-tight">{sub.label}</span>
-                    </button>
-                  )
-                })}
+                    />
+                  ))}
+                </div>
+              </SubcategoryReveal>
+            )}
+
+            {/* Severity bar */}
+            {computedSeverity && <SeverityBar severity={computedSeverity} />}
+
+            {/* Description */}
+            <div>
+              <FieldLabel optional>Description</FieldLabel>
+              <textarea
+                value={description}
+                onChange={e => setDescription(e.target.value.slice(0, 500))}
+                placeholder="What happened? Brief detail..."
+                rows={4}
+                className="w-full px-4 py-3 rounded-xl border border-input bg-card text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary resize-none"
+              />
+              <div className="flex justify-between mt-1.5">
+                <p className="text-[11.5px] text-[#9AA59C]">Kya hua? Mukhtasar bataein</p>
+                <p className="text-[11.5px] text-[#9AA59C]">{description.length}/500</p>
               </div>
-              {errors.delaySubcategory && (
-                <p className="text-xs text-red-500 mt-2">{errors.delaySubcategory}</p>
-              )}
             </div>
-          )}
 
-          {/* Passenger Name */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Your Name{' '}
-              <span className="text-gray-400 font-normal">(optional)</span>
-            </label>
-            <input
-              type="text"
-              value={passengerName}
-              onChange={e => setPassengerName(e.target.value)}
-              placeholder="Full name"
-              className="w-full max-w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Description{' '}
-              <span className="text-gray-400 font-normal">(optional)</span>
-            </label>
-            <textarea
-              value={description}
-              onChange={e => setDescription(e.target.value.slice(0, 500))}
-              placeholder="What happened? Brief detail..."
-              rows={4}
-              className="w-full max-w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-            />
-            <div className="flex justify-between mt-1">
-              <p className="text-xs text-gray-400">Kya hua? Mukhtasar bataein</p>
-              <p className="text-xs text-gray-400">{description.length}/500</p>
-            </div>
-          </div>
-
-          {/* Photo */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Photo{' '}
-              <span className="text-gray-400 font-normal">(optional, max 5MB)</span>
-            </label>
-            {photoPreview ? (
-              <div className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={photoPreview}
-                  alt="Preview"
-                  className="w-full h-48 object-cover rounded-xl"
-                />
+            {/* Photo */}
+            <div>
+              <FieldLabel optional>Photo</FieldLabel>
+              {photoPreview ? (
+                <div className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photoPreview} alt="Preview" className="w-full h-48 object-cover rounded-xl" />
+                  <button
+                    type="button"
+                    onClick={removePhoto}
+                    className="absolute top-2 right-2 w-7 h-7 bg-black/75 text-white rounded-full flex items-center justify-center"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
                 <button
                   type="button"
-                  onClick={removePhoto}
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold leading-none"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full h-[84px] rounded-xl border-2 border-dashed border-[#C9C0A8] bg-card flex items-center justify-center gap-3 text-muted-foreground active:bg-muted transition-colors"
                 >
-                  ✕
+                  <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center shrink-0">
+                    <Camera size={20} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[13px] font-medium">Tap to upload photo</p>
+                    <p className="text-[11px] text-[#9AA59C]">Camera · gallery · max 5 MB</p>
+                  </div>
                 </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full h-24 rounded-xl border-2 border-dashed border-gray-300 bg-white flex flex-col items-center justify-center gap-1 text-gray-400 active:bg-gray-50"
-              >
-                <Upload size={24} />
-                <span className="text-sm">Tap to upload photo</span>
-              </button>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={handlePhotoChange}
-              className="hidden"
-            />
-            {errors.photo && <p className="text-xs text-red-500 mt-1">{errors.photo}</p>}
-          </div>
-
-          {errors.submit && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
-              {errors.submit}
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handlePhotoChange}
+                className="hidden"
+              />
+              <FieldError msg={errors.photo} />
             </div>
-          )}
 
+            {errors.submit && (
+              <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 text-sm text-destructive">
+                {errors.submit}
+              </div>
+            )}
+
+          </div>
+        </div>
+
+      </form>
+
+      {/* Fixed submit dock */}
+      <div className="fixed bottom-0 inset-x-0 z-50 pointer-events-none">
+        <div className="pointer-events-auto w-full max-w-lg mx-auto px-5 pb-5 pt-8"
+             style={{ background: 'linear-gradient(to bottom, transparent, hsl(38 32% 93%) 38%)' }}>
           <button
             type="submit"
+            form="cf"
             disabled={submitting}
-            className="w-full h-14 rounded-xl bg-primary text-primary-foreground font-bold text-base disabled:opacity-60"
+            className="w-full h-14 rounded-xl bg-primary text-primary-foreground font-bold text-base disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg"
           >
-            {submitting ? 'Submitting...' : 'Submit Complaint'}
+            {submitting ? 'Submitting...' : (
+              <>
+                Submit Complaint
+                <ChevronRight size={18} />
+              </>
+            )}
           </button>
-
-        </form>
+          <p className="text-center text-[11px] text-[#9AA59C] mt-2">
+            Reference generated instantly · response within 24 hours
+          </p>
+        </div>
       </div>
+
     </div>
   )
 }
