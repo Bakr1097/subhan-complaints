@@ -1,13 +1,18 @@
 import { Suspense } from 'react'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import ComplaintForm from './ComplaintForm'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata = {
   title: 'Submit a Complaint — Subhan Complaints',
 }
 
 export default async function SubmitPage() {
-  const supabase = createClient()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
 
   const { data: routes } = await supabase
     .from('routes')
