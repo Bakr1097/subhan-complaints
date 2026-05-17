@@ -25,13 +25,6 @@ type ComplaintStatus = {
   closed_at: string | null
 }
 
-type HistoryEntry = {
-  action_type: string
-  old_value: string | null
-  new_value: string | null
-  created_at: string
-}
-
 // ── Helpers ──────────────────────────────────────────────────
 
 function formatPhoneDisplay(raw: string): string {
