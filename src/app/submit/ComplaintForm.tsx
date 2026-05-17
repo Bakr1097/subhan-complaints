@@ -374,17 +374,17 @@ export default function ComplaintForm({ routes }: Props) {
   // ── Form ────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       {/* Trust banner */}
       <div className="bg-primary text-primary-foreground text-center py-3 px-4 text-sm font-medium">
         Your complaint goes directly to management
       </div>
 
-      <div className="max-w-lg mx-auto px-4 pt-6 pb-16">
+      <div className="w-full max-w-lg mx-auto px-4 pt-6 pb-16 overflow-hidden">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Submit a Complaint</h1>
         <p className="text-sm text-gray-500 mb-6">Subhan Complaints — شکایت درج کریں</p>
 
-        <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        <form onSubmit={handleSubmit} noValidate className="space-y-5 w-full">
 
           {/* Phone */}
           <div>
@@ -398,7 +398,7 @@ export default function ComplaintForm({ routes }: Props) {
               onChange={handlePhoneChange}
               placeholder="03XX-XXXXXXX"
               className={cn(
-                'w-full h-12 px-4 rounded-xl border bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary',
+                'w-full max-w-full h-12 px-4 rounded-xl border bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary',
                 errors.phone ? 'border-red-400' : 'border-gray-300'
               )}
             />
@@ -443,7 +443,7 @@ export default function ComplaintForm({ routes }: Props) {
                 if (errors.travelDate) setErrors(prev => ({ ...prev, travelDate: '' }))
               }}
               className={cn(
-                'w-full h-12 px-4 rounded-xl border bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary',
+                'w-full max-w-full h-12 px-4 rounded-xl border bg-white text-base appearance-none focus:outline-none focus:ring-2 focus:ring-primary',
                 errors.travelDate ? 'border-red-400' : 'border-gray-300'
               )}
             />
@@ -464,7 +464,7 @@ export default function ComplaintForm({ routes }: Props) {
                 if (errors.departureTime) setErrors(prev => ({ ...prev, departureTime: '' }))
               }}
               className={cn(
-                'w-full h-12 px-4 rounded-xl border bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary',
+                'w-full max-w-full h-12 px-4 rounded-xl border bg-white text-base appearance-none focus:outline-none focus:ring-2 focus:ring-primary',
                 errors.departureTime ? 'border-red-400' : 'border-gray-300'
               )}
             />
