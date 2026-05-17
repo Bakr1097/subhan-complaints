@@ -122,7 +122,6 @@ export default function StatusPage({ referenceNumber }: { referenceNumber: strin
   const [loading,   setLoading]   = useState(false)
   const [lookupErr, setLookupErr] = useState('')
   const [complaint, setComplaint] = useState<ComplaintStatus | null>(null)
-  const [history,   setHistory]   = useState<HistoryEntry[]>([])
   const [routeName, setRouteName] = useState('')
 
   async function handleLookup(e: React.FormEvent) {
@@ -137,17 +136,10 @@ export default function StatusPage({ referenceNumber }: { referenceNumber: strin
     const supabase   = createClient()
     const e164Phone  = phoneToE164(phone)
 
-    const [{ data: statusData, error: statusError }, { data: historyData }] =
-      await Promise.all([
-        supabase.rpc('get_complaint_status', {
-          p_reference: referenceNumber,
-          p_phone:     e164Phone,
-        }),
-        supabase.rpc('get_complaint_history_public', {
-          p_reference: referenceNumber,
-          p_phone:     e164Phone,
-        }),
-      ])
+    const { data: statusData, error: statusError } = await supabase.rpc('get_complaint_status', {
+      p_reference: referenceNumber,
+      p_phone:     e164Phone,
+    })
 
     if (statusError || !statusData || statusData.length === 0) {
       setLookupErr(
@@ -160,7 +152,6 @@ export default function StatusPage({ referenceNumber }: { referenceNumber: strin
 
     const found = statusData[0] as ComplaintStatus
     setComplaint(found)
-    setHistory((historyData ?? []) as HistoryEntry[])
 
     // Fetch route name — anon has SELECT on routes
     const { data: routeData } = await supabase
@@ -188,7 +179,7 @@ export default function StatusPage({ referenceNumber }: { referenceNumber: strin
 
           {/* Back */}
           <button
-            onClick={() => { setComplaint(null); setHistory([]); setRouteName('') }}
+            onClick={() => { setComplaint(null); setRouteName('') }}
             className="flex items-center gap-1 text-sm text-gray-500 active:text-gray-800"
           >
             <ChevronLeft size={16} />
