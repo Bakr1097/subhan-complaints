@@ -290,14 +290,14 @@ function JourneyStrip({ routeName, travelDate, departureTime, busNumber }: {
             {route ? route.from : 'Origin'}
           </p>
         </div>
-        <div className="flex items-center gap-1 text-[#9AA59C] px-1">
+        <div className="flex items-center gap-1 px-1">
           <div className="w-7 border-t border-dashed border-[#C9C0A8]" />
-          <Bus size={13} className="text-primary shrink-0" />
+          <span className="text-[26px] font-bold leading-none">→</span>
           <div className="w-7 border-t border-dashed border-[#C9C0A8]" />
         </div>
         <div className="text-right">
           <p className="text-[26px] font-bold leading-none tabular-nums">
-            {route ? `→${route.toCode}` : '---'}
+            {route ? route.toCode : '---'}
           </p>
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5 leading-tight truncate">
             {route ? route.to : 'Destination'}
