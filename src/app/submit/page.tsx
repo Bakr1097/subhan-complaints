@@ -15,17 +15,11 @@ export default async function SubmitPage() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
 
-  const { data: routes, error } = await supabase
+  const { data: routes } = await supabase
     .from('routes')
     .select('id, name')
     .eq('is_active', true)
     .order('name')
-
-  console.log('[DIAGNOSTIC] URL set:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
-  console.log('[DIAGNOSTIC] KEY set:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-  console.log('[DIAGNOSTIC] routes count:', routes?.length ?? 'null')
-  console.log('[DIAGNOSTIC] routes data:', JSON.stringify(routes))
-  console.log('[DIAGNOSTIC] error:', JSON.stringify(error))
 
   return (
     <Suspense
