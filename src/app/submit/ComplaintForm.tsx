@@ -774,22 +774,17 @@ export default function ComplaintForm({ routes }: Props) {
             {/* Phone */}
             <div>
               <FieldLabel required>Mobile Number</FieldLabel>
-              <div className={cn(
-                'flex h-[52px] rounded-xl border bg-card overflow-hidden transition-colors',
-                errors.phone ? 'border-destructive' : 'border-input',
-              )}>
-                <div className="flex items-center justify-center px-3.5 border-r border-input bg-muted/60 shrink-0">
-                  <span className="font-mono-brand text-[15px] font-semibold text-muted-foreground select-none">+92</span>
-                </div>
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  placeholder="03XX-XXXXXXX"
-                  className="flex-1 px-3 text-base bg-transparent focus:outline-none focus:ring-4 focus:ring-primary/10 rounded-r-xl"
-                />
-              </div>
+              <input
+                type="tel"
+                inputMode="numeric"
+                value={phone}
+                onChange={handlePhoneChange}
+                placeholder="03XX-XXXXXXX"
+                className={cn(
+                  'w-full h-[52px] px-4 rounded-xl border bg-card text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary',
+                  errors.phone ? 'border-destructive' : 'border-input',
+                )}
+              />
               <Hint>Apna mobile number likhein</Hint>
               <FieldError msg={errors.phone} />
             </div>
