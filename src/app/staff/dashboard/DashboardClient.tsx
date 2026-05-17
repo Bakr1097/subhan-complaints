@@ -36,7 +36,7 @@ type Stats = {
   avgResolutionHours: number | null
 }
 
-type StatusFilter   = 'ALL' | 'OPEN' | 'INVESTIGATING' | 'RESOLVED' | 'CLOSED' | 'ARCHIVED'
+type StatusFilter   = 'ALL' | 'ACTIVE' | 'OPEN' | 'INVESTIGATING' | 'RESOLVED' | 'CLOSED' | 'ARCHIVED'
 type SeverityFilter = 'ALL' | 'LOW' | 'MEDIUM' | 'HIGH'
 type CategoryFilter = 'ALL' | 'DRIVER' | 'STEWARD' | 'DRIVER_STEWARD' | 'BUS_CONDITION' | 'FOOD_DRINKS' | 'DELAY_TIMING' | 'TICKET_REFUND' | 'OTHER_SERIOUS' | 'SUGGESTION_FEEDBACK'
 type DateRangeFilter = '7d' | '30d' | 'month' | 'all'
@@ -168,7 +168,7 @@ export default function DashboardClient({ userName, userRole, routes }: Props) {
   const supabase = useMemo(() => createClient(), [])
 
   // ── Filters ──
-  const [statusFilter,   setStatusFilter]   = useState<StatusFilter>('ALL')
+  const [statusFilter,   setStatusFilter]   = useState<StatusFilter>('ACTIVE')
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('ALL')
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('ALL')
   const [routeFilter,    setRouteFilter]    = useState<string>('ALL')
@@ -248,7 +248,8 @@ export default function DashboardClient({ userName, userRole, routes }: Props) {
       query = query.neq('status', 'ARCHIVED')
     }
 
-    if (statusFilter   !== 'ALL') query = query.eq('status',   statusFilter)
+    if (statusFilter === 'ACTIVE') query = query.in('status', ['OPEN', 'INVESTIGATING'])
+    else if (statusFilter !== 'ALL') query = query.eq('status', statusFilter)
     if (severityFilter !== 'ALL') query = query.eq('severity', severityFilter)
     if (categoryFilter !== 'ALL') query = query.eq('category', categoryFilter)
     if (routeFilter    !== 'ALL') query = query.eq('route_id', routeFilter)
@@ -345,12 +346,13 @@ export default function DashboardClient({ userName, userRole, routes }: Props) {
               value={statusFilter}
               onChange={v => setStatusFilter(v as StatusFilter)}
               options={[
-                { value: 'ALL',          label: 'All'          },
-                { value: 'OPEN',         label: 'Open'         },
-                { value: 'INVESTIGATING', label: 'Investigating' },
-                { value: 'RESOLVED',     label: 'Resolved'     },
-                { value: 'CLOSED',       label: 'Closed'       },
-                { value: 'ARCHIVED',     label: 'Archived'     },
+                { value: 'ACTIVE',        label: 'Active'        },
+                { value: 'ALL',           label: 'All'           },
+                { value: 'OPEN',          label: 'Open'          },
+                { value: 'INVESTIGATING', label: 'Investigating'  },
+                { value: 'RESOLVED',      label: 'Resolved'      },
+                { value: 'CLOSED',        label: 'Closed'        },
+                { value: 'ARCHIVED',      label: 'Archived'      },
               ]}
             />
 
