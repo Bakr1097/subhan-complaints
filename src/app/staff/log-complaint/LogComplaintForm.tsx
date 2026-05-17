@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import {
-  Bus, Utensils, Clock, Ticket, AlertTriangle, Lightbulb,
+  Car, UserCheck, Bus, UtensilsCrossed, Clock, Ticket, AlertTriangle, Lightbulb,
   Upload, X, ArrowLeft,
 } from 'lucide-react'
 
@@ -25,8 +25,7 @@ interface Props {
 type CategoryEntry = {
   value:     string
   label:     string
-  icon?:     ElementType
-  emoji?:    string
+  icon:      ElementType
   severity:  Severity
   variant?:  'suggestion'
 }
@@ -72,10 +71,10 @@ const SOURCES: { value: Source; label: string }[] = [
 ]
 
 const CATEGORIES: CategoryEntry[] = [
-  { value: 'DRIVER',              label: 'Driver',               emoji: '🚗',         severity: 'HIGH'   },
-  { value: 'STEWARD',             label: 'Steward',              emoji: '🧑‍✈️',       severity: 'MEDIUM' },
+  { value: 'DRIVER',              label: 'Driver',               icon: Car,            severity: 'HIGH'   },
+  { value: 'STEWARD',             label: 'Steward',              icon: UserCheck,      severity: 'MEDIUM' },
   { value: 'BUS_CONDITION',       label: 'Bus Condition',        icon: Bus,            severity: 'HIGH'   },
-  { value: 'FOOD_DRINKS',         label: 'Food / Drinks',        icon: Utensils,       severity: 'HIGH'   },
+  { value: 'FOOD_DRINKS',         label: 'Food / Drinks',        icon: UtensilsCrossed, severity: 'HIGH'  },
   { value: 'DELAY_TIMING',        label: 'Delay / Timing',       icon: Clock,          severity: 'MEDIUM' },
   { value: 'TICKET_REFUND',       label: 'Ticket / Refund',      icon: Ticket,         severity: 'MEDIUM' },
   { value: 'OTHER_SERIOUS',       label: 'Other / Serious',      icon: AlertTriangle,  severity: 'HIGH'   },
@@ -535,55 +534,35 @@ export default function LogComplaintForm({ routes, currentUserId, currentUserNam
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Complaint Category *</p>
 
             <div className="grid grid-cols-2 gap-2">
-              {CATEGORIES.filter(c => c.variant !== 'suggestion').map((cat, i) => {
-                const Icon     = cat.icon
-                const selected = category === cat.value
-                const isLastOdd = i === NON_SUGGESTION_COUNT - 1 && NON_SUGGESTION_COUNT % 2 !== 0
+              {CATEGORIES.map((cat, i) => {
+                const Icon         = cat.icon!
+                const selected     = category === cat.value
+                const isSuggestion = cat.variant === 'suggestion'
+                const isLastOdd    = !isSuggestion && i === NON_SUGGESTION_COUNT - 1 && NON_SUGGESTION_COUNT % 2 !== 0
+                const isWide       = isSuggestion || isLastOdd
                 return (
                   <button
                     key={cat.value}
                     type="button"
                     onClick={() => selectCategory(cat.value)}
                     className={cn(
-                      'flex flex-col items-center gap-1.5 p-3 rounded-xl border text-sm font-semibold transition-colors',
-                      isLastOdd && 'col-span-2',
-                      selected
+                      'flex flex-col items-center justify-center gap-1.5 rounded-xl border text-sm font-semibold transition-colors min-h-[64px]',
+                      isWide && 'col-span-2',
+                      isSuggestion && selected
+                        ? 'bg-teal-600 text-white border-teal-600'
+                        : isSuggestion
+                        ? 'bg-white text-teal-700 border-teal-200 hover:bg-teal-50'
+                        : selected
                         ? 'bg-primary text-primary-foreground border-primary'
                         : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50',
                     )}
                   >
-                    {cat.emoji ? (
-                      <span className="text-2xl">{cat.emoji}</span>
-                    ) : Icon ? (
-                      <Icon size={22} />
-                    ) : null}
+                    <Icon size={22} />
                     {cat.label}
                   </button>
                 )
               })}
             </div>
-
-            {/* Suggestion / Feedback — full width */}
-            {(() => {
-              const sug = CATEGORIES.find(c => c.variant === 'suggestion')!
-              const Icon = sug.icon!
-              const sel  = category === sug.value
-              return (
-                <button
-                  type="button"
-                  onClick={() => selectCategory(sug.value)}
-                  className={cn(
-                    'w-full flex items-center justify-center gap-2 p-3 rounded-xl border text-sm font-semibold transition-colors',
-                    sel
-                      ? 'bg-teal-600 text-white border-teal-600'
-                      : 'bg-white text-teal-700 border-teal-200 hover:bg-teal-50',
-                  )}
-                >
-                  <Icon size={18} />
-                  Suggestion / Feedback
-                </button>
-              )
-            })()}
 
             {errors.category && <p className={errorClass}>{errors.category}</p>}
 

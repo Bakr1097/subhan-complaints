@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
-  Bus, Utensils, Clock, Ticket, AlertTriangle, Lightbulb,
+  Car, UserCheck, Bus, UtensilsCrossed, Clock, Ticket, AlertTriangle, Lightbulb,
   Upload, CheckCircle2, ExternalLink,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -33,8 +33,7 @@ type SimpleSubcategoryEntry = {
 type CategoryEntry = {
   value:    string
   label:    string
-  icon?:    LucideIcon
-  emoji?:   string
+  icon:     LucideIcon
   severity: 'HIGH' | 'MEDIUM' | 'LOW'
   variant?: 'suggestion'
 }
@@ -57,14 +56,14 @@ type ConfirmationData = {
 // ── Constants ────────────────────────────────────────────────
 
 const CATEGORIES: CategoryEntry[] = [
-  { value: 'DRIVER',            label: 'Driver',               emoji: '🚗',          severity: 'HIGH'   },
-  { value: 'STEWARD',           label: 'Steward',              emoji: '🧑‍✈️',          severity: 'MEDIUM' },
-  { value: 'BUS_CONDITION',     label: 'Bus Condition',        icon: Bus,             severity: 'HIGH'   },
-  { value: 'FOOD_DRINKS',       label: 'Food / Drinks',        icon: Utensils,        severity: 'HIGH'   },
-  { value: 'DELAY_TIMING',      label: 'Delay / Timing',       icon: Clock,           severity: 'MEDIUM' },
-  { value: 'TICKET_REFUND',     label: 'Ticket / Refund',      icon: Ticket,          severity: 'MEDIUM' },
-  { value: 'OTHER_SERIOUS',     label: 'Other / Serious',      icon: AlertTriangle,   severity: 'HIGH'   },
-  { value: 'SUGGESTION_FEEDBACK', label: 'Suggestion / Feedback', icon: Lightbulb,   severity: 'LOW', variant: 'suggestion' },
+  { value: 'DRIVER',              label: 'Driver',               icon: Car,            severity: 'HIGH'   },
+  { value: 'STEWARD',             label: 'Steward',              icon: UserCheck,      severity: 'MEDIUM' },
+  { value: 'BUS_CONDITION',       label: 'Bus Condition',        icon: Bus,            severity: 'HIGH'   },
+  { value: 'FOOD_DRINKS',         label: 'Food / Drinks',        icon: UtensilsCrossed, severity: 'HIGH'  },
+  { value: 'DELAY_TIMING',        label: 'Delay / Timing',       icon: Clock,          severity: 'MEDIUM' },
+  { value: 'TICKET_REFUND',       label: 'Ticket / Refund',      icon: Ticket,         severity: 'MEDIUM' },
+  { value: 'OTHER_SERIOUS',       label: 'Other / Serious',      icon: AlertTriangle,  severity: 'HIGH'   },
+  { value: 'SUGGESTION_FEEDBACK', label: 'Suggestion / Feedback', icon: Lightbulb,    severity: 'LOW', variant: 'suggestion' },
 ]
 
 const NON_SUGGESTION_COUNT = CATEGORIES.filter(c => !c.variant).length
@@ -538,7 +537,7 @@ export default function ComplaintForm({ routes }: Props) {
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Complaint Category <span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {CATEGORIES.map((cat, i) => {
                 const Icon         = cat.icon
                 const selected     = category === cat.value
@@ -550,8 +549,8 @@ export default function ComplaintForm({ routes }: Props) {
                     type="button"
                     onClick={() => handleCategorySelect(cat.value)}
                     className={cn(
-                      'flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl border-2 font-medium text-sm transition-colors',
-                      isWide && 'col-span-2 flex-row gap-3 py-3',
+                      'flex flex-col items-center justify-center gap-2 rounded-xl border-2 font-medium text-sm transition-colors min-h-[64px]',
+                      isWide && 'col-span-2',
                       isSuggestion && selected
                         ? 'border-teal-500 bg-teal-500 text-white'
                         : isSuggestion
@@ -561,9 +560,7 @@ export default function ComplaintForm({ routes }: Props) {
                         : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50',
                     )}
                   >
-                    {cat.emoji
-                      ? <span className="text-2xl leading-none">{cat.emoji}</span>
-                      : Icon && <Icon size={isWide ? 22 : 28} />}
+                    <Icon size={22} />
                     <span className="text-center leading-tight">{cat.label}</span>
                   </button>
                 )
