@@ -38,7 +38,7 @@ type Stats = {
 
 type StatusFilter   = 'ALL' | 'ACTIVE' | 'OPEN' | 'INVESTIGATING' | 'RESOLVED' | 'CLOSED' | 'ARCHIVED'
 type SeverityFilter = 'ALL' | 'LOW' | 'MEDIUM' | 'HIGH'
-type CategoryFilter = 'ALL' | 'DRIVER' | 'STEWARD' | 'DRIVER_STEWARD' | 'BUS_CONDITION' | 'FOOD_DRINKS' | 'DELAY_TIMING' | 'TICKET_REFUND' | 'OTHER_SERIOUS' | 'SUGGESTION_FEEDBACK'
+type CategoryFilter = 'ALL' | 'DRIVER' | 'STEWARD' | 'BUS_CONDITION' | 'FOOD_DRINKS' | 'DELAY_TIMING' | 'TICKET_REFUND' | 'OTHER_SERIOUS' | 'SUGGESTION_FEEDBACK'
 type DateRangeFilter = '7d' | '30d' | 'month' | 'all'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -47,7 +47,6 @@ const CATEGORIES: { value: CategoryFilter; label: string }[] = [
   { value: 'ALL',                label: 'All Categories'        },
   { value: 'DRIVER',             label: 'Driver'                },
   { value: 'STEWARD',            label: 'Steward'               },
-  { value: 'DRIVER_STEWARD',     label: 'Driver / Steward'      },
   { value: 'BUS_CONDITION',      label: 'Bus Condition'         },
   { value: 'FOOD_DRINKS',        label: 'Food / Drinks'         },
   { value: 'DELAY_TIMING',       label: 'Delay / Timing'        },
