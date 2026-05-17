@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   Car, UserCheck, Bus, UtensilsCrossed, Clock, Ticket, AlertTriangle, Lightbulb,
-  Camera, Check, ChevronRight, Hash, Shield, Share, X, MapPin, Sparkles,
+  Camera, Check, ChevronRight, Hash, Shield, Share, X, MapPin, Sparkles, ArrowRight,
   PhoneOff, Frown, HelpCircle, Wind, Smartphone, Armchair, Navigation, UserX, Ban,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -291,9 +291,10 @@ function JourneyStrip({ routeName, travelDate, departureTime, busNumber }: {
           </p>
         </div>
         <div className="flex items-center gap-1 text-[#9AA59C] px-1">
-          <div className="w-7 border-t border-dashed border-[#C9C0A8]" />
+          <div className="w-5 border-t border-dashed border-[#C9C0A8]" />
           <Bus size={13} className="text-primary shrink-0" />
-          <div className="w-7 border-t border-dashed border-[#C9C0A8]" />
+          <ArrowRight size={12} className="text-[#9AA59C] shrink-0" />
+          <div className="w-5 border-t border-dashed border-[#C9C0A8]" />
         </div>
         <div className="text-right">
           <p className="text-[26px] font-bold leading-none tabular-nums">
