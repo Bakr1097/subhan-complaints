@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import ComplaintDetail from './ComplaintDetail'
+import ComplaintDetail, { type Complaint } from './ComplaintDetail'
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -41,7 +41,7 @@ export default async function ComplaintDetailPage({ params }: { params: { id: st
 
   return (
     <ComplaintDetail
-      complaint={complaint as any}
+      complaint={complaint as unknown as Complaint}
       history={history ?? []}
       notes={notes ?? []}
       staffMap={staffMap}

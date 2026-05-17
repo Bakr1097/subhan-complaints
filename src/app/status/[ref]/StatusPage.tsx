@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
-import { CheckCircle2, Circle, Clock, Search, ChevronLeft } from 'lucide-react'
+import { CheckCircle2, Circle, Search, ChevronLeft } from 'lucide-react'
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -107,7 +107,6 @@ function getStatusIndex(status: string): number {
 function getStepTimestamp(
   step: string,
   complaint: ComplaintStatus,
-  history: HistoryEntry[]
 ): string | null {
   if (step === 'OPEN') return complaint.created_at
   if (step === 'INVESTIGATING') return complaint.investigating_at
@@ -254,7 +253,7 @@ export default function StatusPage({ referenceNumber }: { referenceNumber: strin
                 const stepIndex  = getStatusIndex(step.status)
                 const isDone     = currentIndex >= stepIndex
                 const isActive   = complaint.status === step.status
-                const timestamp  = getStepTimestamp(step.status, complaint, history)
+                const timestamp  = getStepTimestamp(step.status, complaint)
                 const isLast     = i === TIMELINE_STEPS.length - 1
 
                 return (

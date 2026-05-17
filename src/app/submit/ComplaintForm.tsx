@@ -485,7 +485,7 @@ export default function ComplaintForm({ routes }: Props) {
               className="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <p className="text-xs text-gray-400 mt-1">
-              Ticket ya bus ke andar likha number. Agar maloom nahi, "unknown" likhein
+              Ticket ya bus ke andar likha number. Agar maloom nahi, &quot;unknown&quot; likhein
             </p>
           </div>
 

@@ -403,7 +403,7 @@ export default function LogComplaintForm({ routes, currentUserId, currentUserNam
                 className={fieldClass()}
               />
               <p className="text-xs text-gray-400 mt-1">
-                Change this if you're logging a complaint that came in earlier
+                Change this if you&apos;re logging a complaint that came in earlier
               </p>
             </div>
           </div>

@@ -11,7 +11,7 @@ import { ArrowLeft, MessageCircle, X, Plus } from 'lucide-react'
 type ComplaintStatus = 'OPEN' | 'INVESTIGATING' | 'RESOLVED' | 'CLOSED' | 'ARCHIVED'
 type CsatStatus      = 'SATISFIED' | 'UNSATISFIED' | 'NO_RESPONSE'
 
-type Complaint = {
+export type Complaint = {
   id:                         string
   reference_number:           string
   source:                     string

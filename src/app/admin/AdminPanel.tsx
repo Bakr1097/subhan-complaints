@@ -512,7 +512,7 @@ function AddStaffModal({ onClose, onCreated }: {
               </button>
             </div>
             <p className="text-xs text-amber-600 mt-1">
-              Share this password with the staff member — you won't be able to view it again.
+              Share this password with the staff member — you won&apos;t be able to view it again.
             </p>
           </Field>
         </div>
