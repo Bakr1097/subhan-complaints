@@ -1,0 +1,44 @@
+Add an Audit Log tab to the admin panel at /admin.
+
+CONTEXT
+- The complaint_history table already exists and is being written to whenever complaints are created, status changes, severity changes, notes are added, WhatsApp messages are sent, or CSAT is logged.
+- The admin panel currently has two tabs: "Staff Members" and "Routes". I want to add a third tab: "Audit Log".
+- Only ADMIN role can access /admin so no extra permission checks needed.
+
+REQUIREMENTS
+
+1. Update src/app/admin/page.tsx to also fetch audit log data:
+   - Fetch the most recent 100 entries from complaint_history
+   - Join with complaints to get reference_number, and with profiles to get the performer's full_name
+   - Pass it as initialAuditLog prop to AdminPanel
+
+2. Update src/app/admin/AdminPanel.tsx to add the third tab:
+   - Add "Audit Log" tab next to Staff Members and Routes
+   - Mobile-first card layout matching the existing style (rounded-2xl, border, p-4, etc.)
+   - Each entry shows:
+     * Action type badge (color-coded by type)
+     * Complaint reference number (tappable, links to /staff/complaint/[complaint_id])
+     * Change description: e.g. "OPEN → INVESTIGATING" for status changes
+     * Notes field if present
+     * Who performed it (or "System" if no user — like public form submissions)
+     * Relative time (e.g. "2h ago", "3d ago") with full date on hover/tap
+   - Add a filter dropdown at top to filter by action type (All / Created / Status Changed / Severity Changed / Note Added / WhatsApp Sent / CSAT Logged)
+   - If list is empty show a friendly empty state card
+
+ACTION TYPE BADGE COLORS
+- CREATED: blue
+- STATUS_CHANGED: amber
+- SEVERITY_CHANGED: purple
+- NOTE_ADDED: gray
+- WHATSAPP_SENT: green
+- CSAT_LOGGED: pink
+
+ACTION TYPE LABELS (human-readable)
+- CREATED → "Complaint Created"
+- STATUS_CHANGED → "Status Changed"
+- SEVERITY_CHANGED → "Severity Changed"
+- NOTE_ADDED → "Internal Note Added"
+- WHATSAPP_SENT → "WhatsApp Sent"
+- CSAT_LOGGED → "CSAT Logged"
+
+Do not change the Staff or Routes tabs. Only add the new tab and the new data fetch. Confirm when done.

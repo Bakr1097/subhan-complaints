@@ -1,0 +1,37 @@
+One update to the complaint form at /submit:
+
+When the Bus Condition category button is tapped, show 
+a second row of 4 subcategory buttons. The passenger 
+must select one before the form can be submitted:
+
+- ❄️ AC / Heating
+- 📱 Entertainment Tablet
+- 🪑 Seat
+- 🧹 Cleanliness
+
+Note: we do NOT have washrooms on our buses, so no 
+washroom option.
+
+Add two new fields to the complaints table:
+- bus_condition_subcategory (text, nullable) — stores 
+  values: AC_HEATING, ENTERTAINMENT_TABLET, SEAT, CLEANLINESS
+- is_maintenance_required (boolean, default false)
+
+Severity rules for Bus Condition subcategories:
+- CLEANLINESS → HIGH
+- AC_HEATING → MEDIUM
+- ENTERTAINMENT_TABLET → MEDIUM
+- SEAT → MEDIUM
+
+is_maintenance_required logic (auto-set):
+- true when subcategory is AC_HEATING, ENTERTAINMENT_TABLET, or SEAT
+- false when subcategory is CLEANLINESS
+
+The Suggestion / Feedback category button you already 
+added stays as it is.
+
+Give me the ALTER TABLE SQL to run in Supabase rather 
+than re-running the full schema. Update schema.sql file 
+to reflect the new fields for future reference.
+
+Confirm when done, then we proceed to Step 6.

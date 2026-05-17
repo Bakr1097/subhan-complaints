@@ -1,0 +1,50 @@
+Proceed with Step 8 — staff dashboard at /staff/dashboard.
+
+This is the steward head's main working screen. He will 
+use this on his Android phone daily.
+
+Requirements:
+
+LAYOUT
+- Mobile-first design, large tap targets
+- Top header: "Subhan Complaints" + logged-in user name + logout button
+- 4 stat tiles at top in a 2x2 grid (mobile) or row (desktop):
+  • Open count
+  • Investigating count
+  • Resolved this week
+  • Average resolution time (hours)
+
+FILTERS BAR
+- Status filter (All / Open / Investigating / Resolved / Closed / Archived)
+- Severity filter (All / Low / Medium / High)
+- Category filter (All / each category)
+- Route filter (All / each route)
+- Date range filter (last 7 days / last 30 days / this month / custom)
+- "Show archived" toggle (default off — hides Archived complaints)
+
+COMPLAINTS LIST
+- Sorted by oldest first (so old ones surface)
+- Each row shows:
+  • Reference number (large, tappable)
+  • Date submitted + age in hours
+  • Route → bus number
+  • Category + subcategory if applicable
+  • Severity badge (color coded: red/amber/green)
+  • Status badge
+- Color coding on rows:
+  • Red background tint if past 48hrs and still Open/Investigating
+  • Amber tint if 36-48hrs
+- Tapping a row opens /staff/complaint/[id]
+
+ROLE-BASED VISIBILITY
+- ADMIN sees all complaints
+- STEWARD_HEAD sees all complaints EXCEPT those with is_about_steward_head = true
+
+PERFORMANCE
+- Paginate at 50 per page if list grows
+- Show loading state while fetching
+
+If complaints list is empty show a friendly empty state.
+
+Confirm when done. We will build the complaint detail 
+view in Step 10.

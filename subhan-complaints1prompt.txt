@@ -1,0 +1,294 @@
+# Subhan Complaints App — Phase 1 Build
+
+## Project Context
+
+I am building a Complaint Management Web App for an intercity passenger bus service called Subhan Travels, based in Faisalabad, Pakistan. The business runs 10-30 daily departures across multiple routes serving 200-600 passengers per day.
+
+I have no formal coding background. I work by approving actions you suggest. Build incrementally, explain each step in plain English before doing it, and ask me to confirm before making major changes.
+
+## Project Location
+
+The project lives at: C:\Users\Salman\Desktop\New Subhan Complaints App
+
+## Tech Stack
+
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- Supabase (Postgres database + Auth + Storage)
+- Vercel (deployment, later phase)
+- shadcn/ui for components
+- Mobile-first design — most users on Android phones
+
+I have previously built a bus catering app on this same stack so I am familiar with the setup pattern. Use that same pattern here.
+
+## What This App Does
+
+A complaints management system with two user types:
+
+1. PUBLIC (no login) — passengers submit complaints via a QR-code-accessible form
+2. STAFF (login required) — steward head and admin manage and resolve complaints
+
+## Core Features for Phase 1
+
+### Feature 1: Public Complaint Intake Form
+
+A clean mobile-first form accessible at /submit. No login required.
+
+Mandatory fields:
+- Phone number (Pakistan format, auto-format as 03XX-XXXXXXX, validation required)
+- Route (dropdown — seed with: Faisalabad-Lahore, Faisalabad-Karachi, Faisalabad-Islamabad, Faisalabad-Multan, Faisalabad-Peshawar — make routes configurable from admin later)
+- Travel date (date picker, cannot be more than 30 days in the past, cannot be in the future)
+- Departure time (dropdown of time slots per route — seed with common slots: 6 AM, 9 AM, 12 PM, 3 PM, 6 PM, 9 PM, 11 PM)
+- Bus number (text field with helper text "Bus number printed on your ticket or inside the bus. If you don't know, write 'unknown'")
+- Category (6 large tappable buttons with icons):
+  • Driver / Steward
+  • Bus Condition
+  • Food / Drinks
+  • Delay / Timing
+  • Ticket / Refund
+  • Other / Serious
+
+Optional fields:
+- Passenger name
+- Description (textarea, max 500 characters, helper text "What happened? Brief detail")
+- Photo upload (single image, max 5MB, compressed before upload)
+
+UI requirements:
+- English UI
+- Helper text under fields can be in Roman Urdu for clarity
+- Large tap targets (mobile-first)
+- Single-screen layout where possible
+- Trust signal at top: "Your complaint goes directly to management"
+- Submit button clearly visible
+
+QR code pre-fill:
+- The form should accept URL parameters: ?bus=47&route=fsd-lhr&time=6am
+- When these are present, those fields are pre-filled
+- Add a /qr admin page later (not in Phase 1) to generate bus-specific QR codes
+
+After submission:
+- Generate a reference number in format SCT-YYYY-NNNN (e.g., SCT-2026-0047)
+- Show a confirmation screen with:
+  • Large reference number
+  • Route, date, bus
+  • Status: "We have received your complaint. Our team will contact you within 24 hours."
+  • Instruction: "Please screenshot this page for your records"
+  • Link: "Track status anytime: /status/[reference-number]"
+- Do NOT send any SMS or WhatsApp automatically. The steward head will send WhatsApp manually from the dashboard.
+
+### Feature 2: Public Status Tracking Page
+
+URL: /status/[reference-number]
+
+Authentication: passenger enters their phone number to view status (must match the phone on the complaint).
+
+Shows:
+- Reference number
+- Submitted date
+- Current status (Open / Investigating / Resolved / Closed)
+- Resolution notes (only if resolved)
+- Simple timeline of status changes
+
+### Feature 3: Staff Intake Form (Same as Public + Extras)
+
+URL: /staff/log-complaint (requires login)
+
+All public fields plus:
+- Source of complaint (dropdown: Phone / WhatsApp / In-Person / Email / Other)
+- Original timestamp (datetime picker — when the complaint actually came in, may differ from logging time)
+- Logged by (auto-filled with the logged-in staff member's name)
+
+### Feature 4: Severity Auto-Assignment
+
+When a complaint is submitted, automatically assign severity based on category:
+
+HIGH severity (auto):
+- Other / Serious (because it's a mixed bucket — flag for review)
+- Food / Drinks (food safety risk)
+- Bus Condition (because cleanliness is critical to brand)
+
+MEDIUM severity (auto):
+- Driver / Steward
+- Delay / Timing
+- Ticket / Refund
+
+NOTE: This is the simplified Phase 1 logic based on visible category buttons. We will refine in Phase 1.5 with keyword scanning on the description field.
+
+Manual override:
+- Staff can change severity from the dashboard
+- Override requires selecting a reason from a dropdown: "Description indicates higher risk" / "Description indicates lower risk" / "Repeat complaint" / "Vulnerable passenger" / "Other"
+- All overrides logged in an audit trail
+
+### Feature 5: Auto-Routing & Notifications
+
+When a complaint is created:
+- HIGH severity → visible to both steward head AND admin in their dashboards, flagged in red
+- MEDIUM/LOW → visible to steward head only by default
+- Notifications happen IN-APP only for Phase 1 (a notifications bell in the header with unread count). No SMS, no WhatsApp, no email automation in this phase.
+
+Special rule:
+- If the category is "Driver / Steward" AND description contains words like "steward head", "main steward", "supervisor", or a flag is checked saying "Complaint about steward head" — auto-route to admin only, bypass steward head.
+
+### Feature 6: Staff Dashboard
+
+URL: /staff/dashboard (requires login)
+
+Two roles:
+- ADMIN (full access — equivalent to me, the owner)
+- STEWARD_HEAD (sees and manages all complaints except those flagged about himself)
+
+Dashboard shows:
+- Top tiles: Open count, Investigating count, Resolved this week, Average resolution time
+- Filter bar: Status, Severity, Category, Route, Date range
+- Sort: Oldest first by default (so old complaints surface)
+- Each complaint row shows: Reference number, Date, Route, Bus, Category, Severity, Status, Age (hours since submission)
+- Color coding: Red if past SLA (48 hours unresolved), Yellow if approaching (36+ hours)
+- Click row to open detail view
+
+### Feature 7: Complaint Detail View
+
+URL: /staff/complaint/[id]
+
+Shows all complaint details plus:
+- Status workflow buttons: Open → Investigating → Resolved
+- Resolution notes field (required when marking Resolved)
+- Severity override dropdown
+- Internal notes section (staff-only, not visible to passenger)
+- Photo viewer (if uploaded)
+- "Send WhatsApp" button — opens a modal with a pre-written message and the passenger's phone number, with a "Copy message" button and "Open WhatsApp" button (uses wa.me/[number]?text=[encoded-message]). This lets the steward head send the message manually via WhatsApp Business on his phone.
+- Pre-written templates for:
+  • Acknowledgement: "Asalamualaikum. Subhan Travels se baat kar raha hoon. Aap ki complaint #[ref] mil gayi hai. Hum jald rabta karenge."
+  • Resolution: "Aap ki complaint #[ref] resolve ho gayi hai. [Resolution note]. Kya aap mutmain hain? Reply SATISFIED ya UNSATISFIED."
+  • Custom message
+- CSAT logging field — staff can record the passenger's reply (SATISFIED / UNSATISFIED / NO RESPONSE)
+- Action history timeline at the bottom
+
+### Feature 8: Status Lifecycle
+
+States: Open → Investigating → Resolved → Closed → Archived
+
+Rules:
+- Open: default on creation
+- Investigating: when staff opens and starts working on it
+- Resolved: requires resolution notes, requires CSAT request to have been logged
+- Closed: manually marked by staff after CSAT received, OR auto-closed 72 hours after Resolved
+- Archived: auto-moves out of active dashboard 90 days after Closed (still searchable via filter "Show archived")
+
+If passenger replies UNSATISFIED (logged manually by staff):
+- Complaint re-opens
+- Severity bumps up one level
+- Auto-flags to admin
+
+### Feature 9: Admin Panel
+
+URL: /admin (admin role only)
+
+- Manage staff users (add/edit/disable)
+- Manage routes (add/edit/disable)
+- Manage time slots per route
+- Manage bus numbers (optional master list for validation later)
+- View audit logs (severity overrides, status changes, logins)
+
+## Database Schema (Supabase)
+
+Tables:
+
+1. complaints
+   - id (uuid, pk)
+   - reference_number (text, unique, format SCT-YYYY-NNNN)
+   - source (enum: PUBLIC_FORM, PHONE, WHATSAPP, IN_PERSON, EMAIL, OTHER)
+   - logged_by_user_id (uuid, nullable, fk to users — only set for staff-logged)
+   - passenger_name (text, nullable)
+   - passenger_phone (text, required)
+   - route_id (uuid, fk to routes)
+   - travel_date (date)
+   - departure_time (text)
+   - bus_number (text, nullable)
+   - category (enum: DRIVER_STEWARD, BUS_CONDITION, FOOD_DRINKS, DELAY_TIMING, TICKET_REFUND, OTHER_SERIOUS)
+   - description (text, nullable)
+   - photo_url (text, nullable)
+   - severity (enum: LOW, MEDIUM, HIGH)
+   - severity_auto_assigned (boolean, default true)
+   - status (enum: OPEN, INVESTIGATING, RESOLVED, CLOSED, ARCHIVED)
+   - assigned_to_user_id (uuid, nullable)
+   - is_about_steward_head (boolean, default false)
+   - resolution_notes (text, nullable)
+   - csat_response (enum: SATISFIED, UNSATISFIED, NO_RESPONSE, nullable)
+   - original_timestamp (timestamp, nullable — for retro-logged complaints)
+   - created_at (timestamp)
+   - investigating_at (timestamp, nullable)
+   - resolved_at (timestamp, nullable)
+   - closed_at (timestamp, nullable)
+   - archived_at (timestamp, nullable)
+
+2. routes
+   - id (uuid, pk)
+   - name (text — e.g. "Faisalabad-Lahore")
+   - origin (text)
+   - destination (text)
+   - is_active (boolean, default true)
+
+3. route_time_slots
+   - id (uuid, pk)
+   - route_id (uuid, fk)
+   - time_label (text — e.g. "6 AM")
+   - sort_order (int)
+
+4. users (extends Supabase auth.users)
+   - id (uuid, pk, fk to auth.users)
+   - full_name (text)
+   - phone (text)
+   - role (enum: ADMIN, STEWARD_HEAD)
+   - is_active (boolean, default true)
+
+5. complaint_history
+   - id (uuid, pk)
+   - complaint_id (uuid, fk)
+   - action_type (enum: CREATED, STATUS_CHANGED, SEVERITY_CHANGED, NOTE_ADDED, WHATSAPP_SENT, CSAT_LOGGED)
+   - old_value (text, nullable)
+   - new_value (text, nullable)
+   - notes (text, nullable)
+   - performed_by_user_id (uuid, nullable)
+   - created_at (timestamp)
+
+6. internal_notes
+   - id (uuid, pk)
+   - complaint_id (uuid, fk)
+   - note (text)
+   - created_by_user_id (uuid, fk)
+   - created_at (timestamp)
+
+## Row Level Security (RLS)
+
+- complaints: public can INSERT, can SELECT only via reference + phone match. Authenticated staff can SELECT/UPDATE based on role.
+- All other tables: authenticated staff only.
+
+## Build Order
+
+Please build in this exact order, confirming with me before moving to the next step:
+
+1. Initialize Next.js project at the path above with TypeScript, Tailwind, App Router. Install Supabase client, shadcn/ui.
+2. Set up Supabase project (I will create one and provide the URL and anon key when you ask)
+3. Create database schema and RLS policies
+4. Seed initial data (routes, time slots, admin user)
+5. Build public complaint intake form (/submit) with QR pre-fill support
+6. Build confirmation page with reference number
+7. Build public status page (/status/[ref])
+8. Build authentication for staff
+9. Build staff dashboard (/staff/dashboard)
+10. Build complaint detail view with WhatsApp template modal
+11. Build staff intake form (/staff/log-complaint)
+12. Build admin panel basics (routes, users)
+13. Build complaint history / audit log viewing
+14. Test the full flow end to end with sample complaints
+
+## Important Notes
+
+- Do not send any automated SMS, WhatsApp, or email in Phase 1. All passenger communication is manual via WhatsApp Business by the steward head.
+- The WhatsApp button must use wa.me/[number]?text=[encoded-message] format so it opens WhatsApp on the staff phone directly with the message pre-filled. The staff member then taps Send.
+- Keep monthly cost at zero. Use Supabase free tier and Vercel free tier only.
+- All timestamps in Pakistan Standard Time (UTC+5) for display, stored in UTC.
+- Phone numbers stored in international format (+923XXXXXXXXX) but displayed in local format (03XX-XXXXXXX).
+
+Start by confirming you understand the scope, then ask me for the Supabase credentials when you are ready to begin database setup.
