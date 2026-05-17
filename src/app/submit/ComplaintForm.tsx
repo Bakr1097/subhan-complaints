@@ -462,6 +462,8 @@ export default function ComplaintForm({ routes }: Props) {
       e.busConditionSubcategory = 'Please select what specifically went wrong'
     if (category === 'DELAY_TIMING' && !delaySubcategory)
       e.delaySubcategory = 'Please select the type of delay'
+    if (!busNumber.trim())
+      e.busNumber = 'Please enter the bus number'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -887,20 +889,25 @@ export default function ComplaintForm({ routes }: Props) {
 
             {/* Bus Number */}
             <div>
-              <FieldLabel>Bus Number</FieldLabel>
-              <div className="relative h-[52px] rounded-xl border border-input bg-card overflow-hidden">
+              <FieldLabel required>Bus Number</FieldLabel>
+              <div className={cn(
+                'relative h-[52px] rounded-xl border bg-card overflow-hidden',
+                errors.busNumber ? 'border-destructive' : 'border-input',
+              )}>
                 <Hash size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <input
                   type="text"
                   value={busNumber}
-                  onChange={e => setBusNumber(e.target.value)}
+                  onChange={e => {
+                    setBusNumber(e.target.value)
+                    if (errors.busNumber) setErrors(prev => ({ ...prev, busNumber: '' }))
+                  }}
                   placeholder="e.g. 47"
                   className="w-full h-full pl-9 pr-4 bg-transparent text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary"
                 />
               </div>
-              <Hint>
-                Ticket ya bus ke andar likha number. Agar maloom nahi, &quot;unknown&quot; likhein
-              </Hint>
+              <Hint>Ticket ya bus ke andar likha number</Hint>
+              <FieldError msg={errors.busNumber} />
             </div>
 
           </div>
