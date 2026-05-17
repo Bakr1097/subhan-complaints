@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef, useMemo, type ElementType } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
@@ -8,7 +8,6 @@ import {
   Bus, Utensils, Clock, Ticket, AlertTriangle, Lightbulb,
   Upload, X, ArrowLeft,
 } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -26,7 +25,7 @@ interface Props {
 type CategoryEntry = {
   value:     string
   label:     string
-  icon?:     LucideIcon
+  icon?:     ElementType
   emoji?:    string
   severity:  Severity
   variant?:  'suggestion'
@@ -567,7 +566,7 @@ export default function LogComplaintForm({ routes, currentUserId, currentUserNam
             {/* Suggestion / Feedback — full width */}
             {(() => {
               const sug = CATEGORIES.find(c => c.variant === 'suggestion')!
-              const Icon = sug.icon
+              const Icon = sug.icon!
               const sel  = category === sug.value
               return (
                 <button
