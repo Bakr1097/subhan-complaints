@@ -73,6 +73,8 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
+  DRIVER:              'Driver',
+  STEWARD:             'Steward',
   DRIVER_STEWARD:      'Driver / Steward',
   BUS_CONDITION:       'Bus Condition',
   FOOD_DRINKS:         'Food / Drinks',

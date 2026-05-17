@@ -24,6 +24,10 @@ export type Complaint = {
   category:                   string
   bus_condition_subcategory:  string | null
   delay_subcategory:          string | null
+  driver_subcategory:         string | null
+  steward_subcategory:        string | null
+  driver_name:                string | null
+  steward_name:               string | null
   description:                string | null
   photo_url:                  string | null
   severity:                   string
@@ -63,6 +67,8 @@ type Note = {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const CATEGORY_LABELS: Record<string, string> = {
+  DRIVER:              'Driver',
+  STEWARD:             'Steward',
   DRIVER_STEWARD:      'Driver / Steward',
   BUS_CONDITION:       'Bus Condition',
   FOOD_DRINKS:         'Food / Drinks',
@@ -70,6 +76,20 @@ const CATEGORY_LABELS: Record<string, string> = {
   TICKET_REFUND:       'Ticket / Refund',
   OTHER_SERIOUS:       'Other / Serious',
   SUGGESTION_FEEDBACK: 'Suggestion / Feedback',
+}
+
+const DRIVER_SUB_LABELS: Record<string, string> = {
+  RECKLESS_DRIVING: 'Reckless / dangerous driving',
+  MOBILE_USE:       'Mobile phone use while driving',
+  RUDE_BEHAVIOR:    'Rude behavior',
+  OTHER:            'Other',
+}
+
+const STEWARD_SUB_LABELS: Record<string, string> = {
+  RUDE_BEHAVIOR:        'Rude behavior',
+  UNRESPONSIVE:         'Unresponsive / not helping',
+  NOT_SERVING_PROPERLY: 'Not serving properly',
+  OTHER:                'Other',
 }
 
 const BUS_COND_LABELS: Record<string, string> = {
@@ -310,6 +330,10 @@ export default function ComplaintDetail({
     ? (BUS_COND_LABELS[complaint.bus_condition_subcategory] ?? complaint.bus_condition_subcategory)
     : complaint.delay_subcategory
     ? (DELAY_LABELS[complaint.delay_subcategory] ?? complaint.delay_subcategory)
+    : complaint.driver_subcategory
+    ? (DRIVER_SUB_LABELS[complaint.driver_subcategory] ?? complaint.driver_subcategory)
+    : complaint.steward_subcategory
+    ? (STEWARD_SUB_LABELS[complaint.steward_subcategory] ?? complaint.steward_subcategory)
     : null
 
   const showCsat  = complaint.status === 'RESOLVED' || complaint.status === 'CLOSED'
@@ -429,6 +453,12 @@ export default function ComplaintDetail({
                 : (CATEGORY_LABELS[complaint.category] ?? complaint.category)
             }
           />
+          {complaint.driver_name && (
+            <DetailRow label="Driver Name" value={complaint.driver_name} />
+          )}
+          {complaint.steward_name && (
+            <DetailRow label="Steward Name" value={complaint.steward_name} />
+          )}
           {complaint.description && (
             <div className="px-4 py-3 space-y-1">
               <p className="text-xs font-semibold text-gray-500">Description</p>

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import {
-  User, Bus, Utensils, Clock, Ticket, AlertTriangle, Lightbulb,
+  Bus, Utensils, Clock, Ticket, AlertTriangle, Lightbulb,
   Upload, X, ArrowLeft,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -26,7 +26,8 @@ interface Props {
 type CategoryEntry = {
   value:     string
   label:     string
-  icon:      LucideIcon
+  icon?:     LucideIcon
+  emoji?:    string
   severity:  Severity
   variant?:  'suggestion'
 }
@@ -47,6 +48,22 @@ type DelayEntry = {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
+const DRIVER_SUBCATEGORIES = [
+  { value: 'RECKLESS_DRIVING', label: 'Reckless / dangerous driving',   emoji: '⚠️' },
+  { value: 'MOBILE_USE',       label: 'Mobile phone use while driving', emoji: '📵' },
+  { value: 'RUDE_BEHAVIOR',    label: 'Rude behavior',                  emoji: '😠' },
+  { value: 'OTHER',            label: 'Other',                          emoji: '❓' },
+]
+
+const STEWARD_SUBCATEGORIES = [
+  { value: 'RUDE_BEHAVIOR',        label: 'Rude behavior',              emoji: '😠' },
+  { value: 'UNRESPONSIVE',         label: 'Unresponsive / not helping', emoji: '😴' },
+  { value: 'NOT_SERVING_PROPERLY', label: 'Not serving properly',       emoji: '❌' },
+  { value: 'OTHER',                label: 'Other',                      emoji: '❓' },
+]
+
+const NON_SUGGESTION_COUNT = 7
+
 const SOURCES: { value: Source; label: string }[] = [
   { value: 'PHONE',     label: 'Phone Call'  },
   { value: 'WHATSAPP',  label: 'WhatsApp'    },
@@ -56,12 +73,13 @@ const SOURCES: { value: Source; label: string }[] = [
 ]
 
 const CATEGORIES: CategoryEntry[] = [
-  { value: 'DRIVER_STEWARD',      label: 'Driver / Steward',     icon: User,          severity: 'MEDIUM' },
-  { value: 'BUS_CONDITION',       label: 'Bus Condition',         icon: Bus,           severity: 'HIGH'   },
-  { value: 'FOOD_DRINKS',         label: 'Food / Drinks',         icon: Utensils,      severity: 'HIGH'   },
-  { value: 'DELAY_TIMING',        label: 'Delay / Timing',        icon: Clock,         severity: 'MEDIUM' },
-  { value: 'TICKET_REFUND',       label: 'Ticket / Refund',       icon: Ticket,        severity: 'MEDIUM' },
-  { value: 'OTHER_SERIOUS',       label: 'Other / Serious',       icon: AlertTriangle, severity: 'HIGH'   },
+  { value: 'DRIVER',              label: 'Driver',               emoji: '🚗',         severity: 'HIGH'   },
+  { value: 'STEWARD',             label: 'Steward',              emoji: '🧑‍✈️',       severity: 'MEDIUM' },
+  { value: 'BUS_CONDITION',       label: 'Bus Condition',        icon: Bus,            severity: 'HIGH'   },
+  { value: 'FOOD_DRINKS',         label: 'Food / Drinks',        icon: Utensils,       severity: 'HIGH'   },
+  { value: 'DELAY_TIMING',        label: 'Delay / Timing',       icon: Clock,          severity: 'MEDIUM' },
+  { value: 'TICKET_REFUND',       label: 'Ticket / Refund',      icon: Ticket,         severity: 'MEDIUM' },
+  { value: 'OTHER_SERIOUS',       label: 'Other / Serious',      icon: AlertTriangle,  severity: 'HIGH'   },
   { value: 'SUGGESTION_FEEDBACK', label: 'Suggestion / Feedback', icon: Lightbulb,     severity: 'LOW',   variant: 'suggestion' },
 ]
 
@@ -175,6 +193,10 @@ export default function LogComplaintForm({ routes, currentUserId, currentUserNam
   const [category,                setCategory]                = useState('')
   const [busConditionSubcategory, setBusConditionSubcategory] = useState('')
   const [delaySubcategory,        setDelaySubcategory]        = useState('')
+  const [driverSubcategory,       setDriverSubcategory]       = useState('')
+  const [stewardSubcategory,      setStewardSubcategory]      = useState('')
+  const [driverName,              setDriverName]              = useState('')
+  const [stewardName,             setStewardName]             = useState('')
   const [isAboutStewardHead,      setIsAboutStewardHead]      = useState(false)
   const [description,             setDescription]             = useState('')
   const [photo,                   setPhoto]                   = useState<File | null>(null)
@@ -229,6 +251,10 @@ export default function LogComplaintForm({ routes, currentUserId, currentUserNam
     if (!travelDate)                              e.travelDate = 'Please select a travel date'
     if (!departureTime)                           e.departureTime = 'Please enter departure time'
     if (!category)                                e.category  = 'Please select a complaint category'
+    if (category === 'DRIVER'  && !driverSubcategory)
+                                                  e.driverSubcategory  = 'Please select what the driver did'
+    if (category === 'STEWARD' && !stewardSubcategory)
+                                                  e.stewardSubcategory = 'Please select what the steward did'
     if (category === 'BUS_CONDITION' && !busConditionSubcategory)
                                                   e.busConditionSubcategory = 'Please select what went wrong'
     if (category === 'DELAY_TIMING' && !delaySubcategory)
@@ -287,7 +313,11 @@ export default function LogComplaintForm({ routes, currentUserId, currentUserNam
           is_about_steward_head:     isAboutStewardHead,
           bus_condition_subcategory: category === 'BUS_CONDITION' ? busConditionSubcategory || null : null,
           is_maintenance_required:   isMaintenanceRequired,
-          delay_subcategory:         category === 'DELAY_TIMING'  ? delaySubcategory  || null : null,
+          delay_subcategory:         category === 'DELAY_TIMING'  ? delaySubcategory   || null : null,
+          driver_subcategory:        category === 'DRIVER'        ? driverSubcategory  || null : null,
+          steward_subcategory:       category === 'STEWARD'       ? stewardSubcategory || null : null,
+          driver_name:               category === 'DRIVER'        ? driverName.trim()  || null : null,
+          steward_name:              category === 'STEWARD'       ? stewardName.trim() || null : null,
           original_timestamp:        originalTs,
         })
         .select('id, reference_number')
@@ -300,7 +330,10 @@ export default function LogComplaintForm({ routes, currentUserId, currentUserNam
         complaint_id:         newComplaint.id,
         action_type:          'CREATED',
         new_value:            'OPEN',
-        notes:                `Logged by staff via intake form (${SOURCES.find(s => s.value === source)?.label})`,
+        notes:                `Logged by staff via intake form (${SOURCES.find(s => s.value === source)?.label})${
+          category === 'DRIVER'  && driverSubcategory  ? ` — Driver: ${driverSubcategory}`  :
+          category === 'STEWARD' && stewardSubcategory ? ` — Steward: ${stewardSubcategory}` : ''
+        }`,
         performed_by_user_id: currentUserId,
       })
 
@@ -319,10 +352,11 @@ export default function LogComplaintForm({ routes, currentUserId, currentUserNam
     setCategory(val)
     if (val !== 'BUS_CONDITION') setBusConditionSubcategory('')
     if (val !== 'DELAY_TIMING')  setDelaySubcategory('')
-    setSeverityOverride(null) // reset override when category changes
-    setErrors(prev => ({ ...prev, category: '', busConditionSubcategory: '', delaySubcategory: '' }))
-    // Auto-detect steward head keyword from description
-    if (val === 'DRIVER_STEWARD' && description && containsStewardHeadKw(description)) {
+    if (val !== 'DRIVER')  { setDriverSubcategory(''); setDriverName('') }
+    if (val !== 'STEWARD') { setStewardSubcategory(''); setStewardName(''); setIsAboutStewardHead(false) }
+    setSeverityOverride(null)
+    setErrors(prev => ({ ...prev, category: '', busConditionSubcategory: '', delaySubcategory: '', driverSubcategory: '', stewardSubcategory: '' }))
+    if (val === 'STEWARD' && description && containsStewardHeadKw(description)) {
       setIsAboutStewardHead(true)
     }
   }
@@ -502,9 +536,10 @@ export default function LogComplaintForm({ routes, currentUserId, currentUserNam
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Complaint Category *</p>
 
             <div className="grid grid-cols-2 gap-2">
-              {CATEGORIES.filter(c => c.variant !== 'suggestion').map(cat => {
+              {CATEGORIES.filter(c => c.variant !== 'suggestion').map((cat, i) => {
                 const Icon     = cat.icon
                 const selected = category === cat.value
+                const isLastOdd = i === NON_SUGGESTION_COUNT - 1 && NON_SUGGESTION_COUNT % 2 !== 0
                 return (
                   <button
                     key={cat.value}
@@ -512,12 +547,17 @@ export default function LogComplaintForm({ routes, currentUserId, currentUserNam
                     onClick={() => selectCategory(cat.value)}
                     className={cn(
                       'flex flex-col items-center gap-1.5 p-3 rounded-xl border text-sm font-semibold transition-colors',
+                      isLastOdd && 'col-span-2',
                       selected
                         ? 'bg-primary text-primary-foreground border-primary'
                         : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50',
                     )}
                   >
-                    <Icon size={22} />
+                    {cat.emoji ? (
+                      <span className="text-2xl">{cat.emoji}</span>
+                    ) : Icon ? (
+                      <Icon size={22} />
+                    ) : null}
                     {cat.label}
                   </button>
                 )
@@ -612,19 +652,97 @@ export default function LogComplaintForm({ routes, currentUserId, currentUserNam
               </div>
             )}
 
-            {/* Steward head flag */}
-            {category === 'DRIVER_STEWARD' && (
-              <label className="flex items-start gap-3 p-3 rounded-xl border border-amber-200 bg-amber-50 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isAboutStewardHead}
-                  onChange={e => setIsAboutStewardHead(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 accent-primary shrink-0"
-                />
-                <span className="text-sm text-amber-800 font-medium leading-snug">
-                  This complaint is about the Steward Head (routes to admin only, hidden from Steward Head)
-                </span>
-              </label>
+            {/* Driver subcategory */}
+            {category === 'DRIVER' && (
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-gray-700">What did the driver do? *</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {DRIVER_SUBCATEGORIES.map((sub, i) => {
+                    const sel     = driverSubcategory === sub.value
+                    const lastOdd = i === DRIVER_SUBCATEGORIES.length - 1 && DRIVER_SUBCATEGORIES.length % 2 !== 0
+                    return (
+                      <button
+                        key={sub.value}
+                        type="button"
+                        onClick={() => { setDriverSubcategory(sub.value); setErrors(p => ({ ...p, driverSubcategory: '' })) }}
+                        className={cn(
+                          'flex flex-col items-center gap-1 p-3 rounded-xl border text-xs font-semibold transition-colors',
+                          lastOdd && 'col-span-2',
+                          sel
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50',
+                        )}
+                      >
+                        <span className="text-lg">{sub.emoji}</span>
+                        {sub.label}
+                      </button>
+                    )
+                  })}
+                </div>
+                {errors.driverSubcategory && <p className={errorClass}>{errors.driverSubcategory}</p>}
+                <div>
+                  <label className={labelClass}>Driver name <span className="font-normal text-gray-400">(optional)</span></label>
+                  <input
+                    type="text"
+                    value={driverName}
+                    onChange={e => setDriverName(e.target.value)}
+                    placeholder="Agar yaad ho — ticket ya bus ke andar likha hota hai"
+                    className={fieldClass()}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Steward subcategory + steward head flag */}
+            {category === 'STEWARD' && (
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-gray-700">What did the steward do? *</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {STEWARD_SUBCATEGORIES.map((sub, i) => {
+                    const sel     = stewardSubcategory === sub.value
+                    const lastOdd = i === STEWARD_SUBCATEGORIES.length - 1 && STEWARD_SUBCATEGORIES.length % 2 !== 0
+                    return (
+                      <button
+                        key={sub.value}
+                        type="button"
+                        onClick={() => { setStewardSubcategory(sub.value); setErrors(p => ({ ...p, stewardSubcategory: '' })) }}
+                        className={cn(
+                          'flex flex-col items-center gap-1 p-3 rounded-xl border text-xs font-semibold transition-colors',
+                          lastOdd && 'col-span-2',
+                          sel
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50',
+                        )}
+                      >
+                        <span className="text-lg">{sub.emoji}</span>
+                        {sub.label}
+                      </button>
+                    )
+                  })}
+                </div>
+                {errors.stewardSubcategory && <p className={errorClass}>{errors.stewardSubcategory}</p>}
+                <div>
+                  <label className={labelClass}>Steward name <span className="font-normal text-gray-400">(optional)</span></label>
+                  <input
+                    type="text"
+                    value={stewardName}
+                    onChange={e => setStewardName(e.target.value)}
+                    placeholder="Agar yaad ho — ticket ya bus ke andar likha hota hai"
+                    className={fieldClass()}
+                  />
+                </div>
+                <label className="flex items-start gap-3 p-3 rounded-xl border border-amber-200 bg-amber-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isAboutStewardHead}
+                    onChange={e => setIsAboutStewardHead(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 accent-primary shrink-0"
+                  />
+                  <span className="text-sm text-amber-800 font-medium leading-snug">
+                    This complaint is about the Steward Head (routes to admin only, hidden from Steward Head)
+                  </span>
+                </label>
+              </div>
             )}
           </div>
 
@@ -640,7 +758,7 @@ export default function LogComplaintForm({ routes, currentUserId, currentUserNam
                 onChange={e => {
                   const val = e.target.value.slice(0, 500)
                   setDescription(val)
-                  if (category === 'DRIVER_STEWARD' && containsStewardHeadKw(val)) {
+                  if (category === 'STEWARD' && containsStewardHeadKw(val)) {
                     setIsAboutStewardHead(true)
                   }
                 }}

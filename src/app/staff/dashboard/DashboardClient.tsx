@@ -19,6 +19,10 @@ type Complaint = {
   category: string
   bus_condition_subcategory: string | null
   delay_subcategory: string | null
+  driver_subcategory: string | null
+  steward_subcategory: string | null
+  driver_name: string | null
+  steward_name: string | null
   severity: string
   status: string
   is_about_steward_head: boolean
@@ -34,13 +38,15 @@ type Stats = {
 
 type StatusFilter   = 'ALL' | 'OPEN' | 'INVESTIGATING' | 'RESOLVED' | 'CLOSED' | 'ARCHIVED'
 type SeverityFilter = 'ALL' | 'LOW' | 'MEDIUM' | 'HIGH'
-type CategoryFilter = 'ALL' | 'DRIVER_STEWARD' | 'BUS_CONDITION' | 'FOOD_DRINKS' | 'DELAY_TIMING' | 'TICKET_REFUND' | 'OTHER_SERIOUS' | 'SUGGESTION_FEEDBACK'
+type CategoryFilter = 'ALL' | 'DRIVER' | 'STEWARD' | 'DRIVER_STEWARD' | 'BUS_CONDITION' | 'FOOD_DRINKS' | 'DELAY_TIMING' | 'TICKET_REFUND' | 'OTHER_SERIOUS' | 'SUGGESTION_FEEDBACK'
 type DateRangeFilter = '7d' | '30d' | 'month' | 'all'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const CATEGORIES: { value: CategoryFilter; label: string }[] = [
   { value: 'ALL',                label: 'All Categories'        },
+  { value: 'DRIVER',             label: 'Driver'                },
+  { value: 'STEWARD',            label: 'Steward'               },
   { value: 'DRIVER_STEWARD',     label: 'Driver / Steward'      },
   { value: 'BUS_CONDITION',      label: 'Bus Condition'         },
   { value: 'FOOD_DRINKS',        label: 'Food / Drinks'         },
@@ -49,6 +55,18 @@ const CATEGORIES: { value: CategoryFilter; label: string }[] = [
   { value: 'OTHER_SERIOUS',      label: 'Other / Serious'       },
   { value: 'SUGGESTION_FEEDBACK', label: 'Suggestion / Feedback' },
 ]
+
+const CATEGORY_LABELS: Record<string, string> = {
+  DRIVER:              'Driver',
+  STEWARD:             'Steward',
+  DRIVER_STEWARD:      'Driver / Steward',
+  BUS_CONDITION:       'Bus Condition',
+  FOOD_DRINKS:         'Food / Drinks',
+  DELAY_TIMING:        'Delay / Timing',
+  TICKET_REFUND:       'Ticket / Refund',
+  OTHER_SERIOUS:       'Other / Serious',
+  SUGGESTION_FEEDBACK: 'Suggestion / Feedback',
+}
 
 const STATUS_LABELS: Record<string, string> = {
   OPEN:          'Open',
@@ -106,17 +124,35 @@ function subcategoryLabel(complaint: Complaint): string | null {
   }
   if (complaint.delay_subcategory) {
     const map: Record<string, string> = {
-      LATE_DEPARTURE: 'Late Departure',
-      LATE_ARRIVAL:   'Late Arrival',
+      LATE_DEPARTURE:  'Late Departure',
+      LATE_ARRIVAL:    'Late Arrival',
       EXCESSIVE_STOPS: 'Excessive Stops',
     }
     return map[complaint.delay_subcategory] ?? complaint.delay_subcategory
+  }
+  if (complaint.driver_subcategory) {
+    const map: Record<string, string> = {
+      RECKLESS_DRIVING: 'Reckless driving',
+      MOBILE_USE:       'Mobile use',
+      RUDE_BEHAVIOR:    'Rude behavior',
+      OTHER:            'Other',
+    }
+    return map[complaint.driver_subcategory] ?? complaint.driver_subcategory
+  }
+  if (complaint.steward_subcategory) {
+    const map: Record<string, string> = {
+      RUDE_BEHAVIOR:        'Rude behavior',
+      UNRESPONSIVE:         'Unresponsive',
+      NOT_SERVING_PROPERLY: 'Not serving properly',
+      OTHER:                'Other',
+    }
+    return map[complaint.steward_subcategory] ?? complaint.steward_subcategory
   }
   return null
 }
 
 function categoryLabel(cat: string): string {
-  return CATEGORIES.find(c => c.value === cat)?.label ?? cat
+  return CATEGORY_LABELS[cat] ?? cat
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -196,7 +232,7 @@ export default function DashboardClient({ userName, userRole, routes }: Props) {
     let query = supabase
       .from('complaints')
       .select(
-        'id, reference_number, created_at, route_id, bus_number, category, bus_condition_subcategory, delay_subcategory, severity, status, is_about_steward_head, routes(name)',
+        'id, reference_number, created_at, route_id, bus_number, category, bus_condition_subcategory, delay_subcategory, driver_subcategory, steward_subcategory, driver_name, steward_name, severity, status, is_about_steward_head, routes(name)',
         { count: 'exact' },
       )
       .order('created_at', { ascending: true })

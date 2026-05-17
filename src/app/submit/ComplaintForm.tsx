@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
-  User, Bus, Utensils, Clock, Ticket, AlertTriangle, Lightbulb,
+  Bus, Utensils, Clock, Ticket, AlertTriangle, Lightbulb,
   Upload, CheckCircle2, ExternalLink,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -24,42 +24,52 @@ type DelaySubcategoryEntry = {
   emoji: string
 }
 
-type CategoryEntry = {
+type SimpleSubcategoryEntry = {
   value: string
   label: string
-  icon: LucideIcon
+  emoji: string
+}
+
+type CategoryEntry = {
+  value:    string
+  label:    string
+  icon?:    LucideIcon
+  emoji?:   string
   severity: 'HIGH' | 'MEDIUM' | 'LOW'
   variant?: 'suggestion'
 }
 
-type SubcategoryEntry = {
-  value: string
-  label: string
-  emoji: string
-  severity: 'HIGH' | 'MEDIUM'
+type BusSubcategoryEntry = {
+  value:                string
+  label:                string
+  emoji:                string
+  severity:             'HIGH' | 'MEDIUM'
   isMaintenanceRequired: boolean
 }
 
 type ConfirmationData = {
   referenceNumber: string
-  routeName: string
-  travelDate: string
-  busNumber: string
+  routeName:       string
+  travelDate:      string
+  busNumber:       string
 }
 
 // ── Constants ────────────────────────────────────────────────
 
 const CATEGORIES: CategoryEntry[] = [
-  { value: 'DRIVER_STEWARD',      label: 'Driver / Steward',    icon: User,          severity: 'MEDIUM' },
-  { value: 'BUS_CONDITION',       label: 'Bus Condition',        icon: Bus,            severity: 'HIGH'   },
-  { value: 'FOOD_DRINKS',         label: 'Food / Drinks',        icon: Utensils,       severity: 'HIGH'   },
-  { value: 'DELAY_TIMING',        label: 'Delay / Timing',       icon: Clock,          severity: 'MEDIUM' },
-  { value: 'TICKET_REFUND',       label: 'Ticket / Refund',      icon: Ticket,         severity: 'MEDIUM' },
-  { value: 'OTHER_SERIOUS',       label: 'Other / Serious',      icon: AlertTriangle,  severity: 'HIGH'   },
-  { value: 'SUGGESTION_FEEDBACK', label: 'Suggestion / Feedback', icon: Lightbulb,     severity: 'LOW', variant: 'suggestion' },
+  { value: 'DRIVER',            label: 'Driver',               emoji: '🚗',          severity: 'HIGH'   },
+  { value: 'STEWARD',           label: 'Steward',              emoji: '🧑‍✈️',          severity: 'MEDIUM' },
+  { value: 'BUS_CONDITION',     label: 'Bus Condition',        icon: Bus,             severity: 'HIGH'   },
+  { value: 'FOOD_DRINKS',       label: 'Food / Drinks',        icon: Utensils,        severity: 'HIGH'   },
+  { value: 'DELAY_TIMING',      label: 'Delay / Timing',       icon: Clock,           severity: 'MEDIUM' },
+  { value: 'TICKET_REFUND',     label: 'Ticket / Refund',      icon: Ticket,          severity: 'MEDIUM' },
+  { value: 'OTHER_SERIOUS',     label: 'Other / Serious',      icon: AlertTriangle,   severity: 'HIGH'   },
+  { value: 'SUGGESTION_FEEDBACK', label: 'Suggestion / Feedback', icon: Lightbulb,   severity: 'LOW', variant: 'suggestion' },
 ]
 
-const BUS_CONDITION_SUBCATEGORIES: SubcategoryEntry[] = [
+const NON_SUGGESTION_COUNT = CATEGORIES.filter(c => !c.variant).length
+
+const BUS_CONDITION_SUBCATEGORIES: BusSubcategoryEntry[] = [
   { value: 'AC_HEATING',           label: 'AC / Heating',         emoji: '❄️', severity: 'MEDIUM', isMaintenanceRequired: true  },
   { value: 'ENTERTAINMENT_TABLET', label: 'Entertainment Tablet', emoji: '📱', severity: 'MEDIUM', isMaintenanceRequired: true  },
   { value: 'SEAT',                 label: 'Seat',                 emoji: '🪑', severity: 'MEDIUM', isMaintenanceRequired: true  },
@@ -67,9 +77,23 @@ const BUS_CONDITION_SUBCATEGORIES: SubcategoryEntry[] = [
 ]
 
 const DELAY_SUBCATEGORIES: DelaySubcategoryEntry[] = [
-  { value: 'LATE_DEPARTURE',  label: 'Late Departure',              emoji: '⏰' },
-  { value: 'LATE_ARRIVAL',    label: 'Late Arrival',                emoji: '🛣️' },
+  { value: 'LATE_DEPARTURE',  label: 'Late Departure',                 emoji: '⏰' },
+  { value: 'LATE_ARRIVAL',    label: 'Late Arrival',                   emoji: '🛣️' },
   { value: 'EXCESSIVE_STOPS', label: 'Excessive Stops / Slow Journey', emoji: '🚏' },
+]
+
+const DRIVER_SUBCATEGORIES: SimpleSubcategoryEntry[] = [
+  { value: 'RECKLESS_DRIVING', label: 'Reckless / dangerous driving',   emoji: '⚠️' },
+  { value: 'MOBILE_USE',       label: 'Mobile phone use while driving', emoji: '📵' },
+  { value: 'RUDE_BEHAVIOR',    label: 'Rude behavior',                  emoji: '😠' },
+  { value: 'OTHER',            label: 'Other',                          emoji: '❓' },
+]
+
+const STEWARD_SUBCATEGORIES: SimpleSubcategoryEntry[] = [
+  { value: 'RUDE_BEHAVIOR',        label: 'Rude behavior',             emoji: '😠' },
+  { value: 'UNRESPONSIVE',         label: 'Unresponsive / not helping', emoji: '😴' },
+  { value: 'NOT_SERVING_PROPERLY', label: 'Not serving properly',      emoji: '❌' },
+  { value: 'OTHER',                label: 'Other',                     emoji: '❓' },
 ]
 
 const STEWARD_HEAD_KEYWORDS = ['steward head', 'main steward', 'supervisor', 'bara steward']
@@ -107,7 +131,6 @@ function containsStewardHeadKeyword(text: string): boolean {
   return STEWARD_HEAD_KEYWORDS.some(kw => lower.includes(kw))
 }
 
-
 async function compressImage(file: File): Promise<File> {
   return new Promise((resolve) => {
     const reader = new FileReader()
@@ -131,7 +154,7 @@ async function compressImage(file: File): Promise<File> {
               : file
           ),
           'image/jpeg',
-          0.85
+          0.85,
         )
       }
       img.src = e.target?.result as string
@@ -145,7 +168,6 @@ async function compressImage(file: File): Promise<File> {
 export default function ComplaintForm({ routes }: Props) {
   const searchParams = useSearchParams()
 
-  // QR pre-fill
   const qrBus   = searchParams.get('bus')   ?? ''
   const qrRoute = searchParams.get('route') ?? ''
   const qrTime  = searchParams.get('time')  ?? ''
@@ -171,6 +193,10 @@ export default function ComplaintForm({ routes }: Props) {
   const [category,                setCategory]                = useState('')
   const [busConditionSubcategory, setBusConditionSubcategory] = useState('')
   const [delaySubcategory,        setDelaySubcategory]        = useState('')
+  const [driverSubcategory,       setDriverSubcategory]       = useState('')
+  const [stewardSubcategory,      setStewardSubcategory]      = useState('')
+  const [driverName,              setDriverName]              = useState('')
+  const [stewardName,             setStewardName]             = useState('')
   const [passengerName,           setPassengerName]           = useState('')
   const [description,             setDescription]             = useState('')
   const [isAboutStewardHead,      setIsAboutStewardHead]      = useState(false)
@@ -215,6 +241,19 @@ export default function ComplaintForm({ routes }: Props) {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
+  function handleCategorySelect(val: string) {
+    setCategory(val)
+    // Reset all subcategory/name state when switching category
+    setBusConditionSubcategory('')
+    setDelaySubcategory('')
+    setDriverSubcategory('')
+    setStewardSubcategory('')
+    setDriverName('')
+    setStewardName('')
+    setIsAboutStewardHead(false)
+    if (errors.category) setErrors(prev => ({ ...prev, category: '' }))
+  }
+
   function validate(): boolean {
     const e: Record<string, string> = {}
     if (!validatePhone(phone))
@@ -227,6 +266,10 @@ export default function ComplaintForm({ routes }: Props) {
       e.departureTime = 'Please select the departure time'
     if (!category)
       e.category = 'Please select a complaint category'
+    if (category === 'DRIVER' && !driverSubcategory)
+      e.driverSubcategory = 'Please select what went wrong'
+    if (category === 'STEWARD' && !stewardSubcategory)
+      e.stewardSubcategory = 'Please select what went wrong'
     if (category === 'BUS_CONDITION' && !busConditionSubcategory)
       e.busConditionSubcategory = 'Please select what specifically went wrong'
     if (category === 'DELAY_TIMING' && !delaySubcategory)
@@ -242,7 +285,6 @@ export default function ComplaintForm({ routes }: Props) {
 
     const supabase = createClient()
 
-    // Upload photo
     let photoUrl: string | null = null
     if (photo) {
       try {
@@ -262,10 +304,10 @@ export default function ComplaintForm({ routes }: Props) {
       }
     }
 
-    const cat             = CATEGORIES.find(c => c.value === category)!
-    const flagStewardHead = isAboutStewardHead || containsStewardHeadKeyword(description)
+    const cat = CATEGORIES.find(c => c.value === category)!
+    const flagStewardHead = category === 'STEWARD' && (isAboutStewardHead || containsStewardHeadKeyword(description))
 
-    // BUS_CONDITION: severity + maintenance flag come from subcategory
+    // BUS_CONDITION: severity comes from subcategory selection
     let finalSeverity: 'HIGH' | 'MEDIUM' | 'LOW' = cat.severity
     let isMaintenanceRequired = false
     if (category === 'BUS_CONDITION' && busConditionSubcategory) {
@@ -288,10 +330,13 @@ export default function ComplaintForm({ routes }: Props) {
       p_is_about_steward_head:     flagStewardHead,
       p_bus_condition_subcategory: category === 'BUS_CONDITION' ? busConditionSubcategory || null : null,
       p_is_maintenance_required:   isMaintenanceRequired,
-      p_delay_subcategory:         category === 'DELAY_TIMING' ? delaySubcategory || null : null,
+      p_delay_subcategory:         category === 'DELAY_TIMING'  ? delaySubcategory  || null : null,
+      p_driver_subcategory:        category === 'DRIVER'        ? driverSubcategory  || null : null,
+      p_steward_subcategory:       category === 'STEWARD'       ? stewardSubcategory || null : null,
+      p_driver_name:               category === 'DRIVER'        ? driverName.trim()  || null : null,
+      p_steward_name:              category === 'STEWARD'       ? stewardName.trim() || null : null,
     })
 
-    // RETURNS TABLE gives back an array; take the first (and only) row
     const complaint = Array.isArray(data) ? data[0] : data
 
     if (error || !complaint) {
@@ -375,7 +420,6 @@ export default function ComplaintForm({ routes }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      {/* Trust banner */}
       <div className="bg-primary text-primary-foreground text-center py-3 px-4 text-sm font-medium">
         Your complaint goes directly to management
       </div>
@@ -399,7 +443,7 @@ export default function ComplaintForm({ routes }: Props) {
               placeholder="03XX-XXXXXXX"
               className={cn(
                 'w-full max-w-full h-12 px-4 rounded-xl border bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary',
-                errors.phone ? 'border-red-400' : 'border-gray-300'
+                errors.phone ? 'border-red-400' : 'border-gray-300',
               )}
             />
             <p className="text-xs text-gray-400 mt-1">Apna mobile number likhein</p>
@@ -415,8 +459,8 @@ export default function ComplaintForm({ routes }: Props) {
               value={routeId}
               onChange={handleRouteChange}
               className={cn(
-                'w-full h-12 px-4 rounded-xl border bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary appearance-none',
-                errors.routeId ? 'border-red-400' : 'border-gray-300'
+                'w-full max-w-full h-12 px-4 rounded-xl border bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary appearance-none',
+                errors.routeId ? 'border-red-400' : 'border-gray-300',
               )}
             >
               <option value="">Select route...</option>
@@ -444,7 +488,7 @@ export default function ComplaintForm({ routes }: Props) {
               }}
               className={cn(
                 'w-full max-w-full h-12 px-4 rounded-xl border bg-white text-base appearance-none focus:outline-none focus:ring-2 focus:ring-primary',
-                errors.travelDate ? 'border-red-400' : 'border-gray-300'
+                errors.travelDate ? 'border-red-400' : 'border-gray-300',
               )}
             />
             <p className="text-xs text-gray-400 mt-1">Jis din safar kiya</p>
@@ -465,7 +509,7 @@ export default function ComplaintForm({ routes }: Props) {
               }}
               className={cn(
                 'w-full max-w-full h-12 px-4 rounded-xl border bg-white text-base appearance-none focus:outline-none focus:ring-2 focus:ring-primary',
-                errors.departureTime ? 'border-red-400' : 'border-gray-300'
+                errors.departureTime ? 'border-red-400' : 'border-gray-300',
               )}
             />
             <p className="text-xs text-gray-400 mt-1">Tap to select — stored as 24-hour, shown as 12-hour on your phone</p>
@@ -482,7 +526,7 @@ export default function ComplaintForm({ routes }: Props) {
               value={busNumber}
               onChange={e => setBusNumber(e.target.value)}
               placeholder="e.g. 47"
-              className="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full max-w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <p className="text-xs text-gray-400 mt-1">
               Ticket ya bus ke andar likha number. Agar maloom nahi, &quot;unknown&quot; likhein
@@ -495,33 +539,31 @@ export default function ComplaintForm({ routes }: Props) {
               Complaint Category <span className="text-red-500">*</span>
             </label>
             <div className="grid grid-cols-2 gap-3">
-              {CATEGORIES.map(cat => {
-                const Icon        = cat.icon
-                const selected    = category === cat.value
+              {CATEGORIES.map((cat, i) => {
+                const Icon         = cat.icon
+                const selected     = category === cat.value
                 const isSuggestion = cat.variant === 'suggestion'
+                const isWide       = isSuggestion || (!isSuggestion && i === NON_SUGGESTION_COUNT - 1 && NON_SUGGESTION_COUNT % 2 !== 0)
                 return (
                   <button
                     key={cat.value}
                     type="button"
-                    onClick={() => {
-                      setCategory(cat.value)
-                      if (cat.value !== 'BUS_CONDITION') setBusConditionSubcategory('')
-                      if (cat.value !== 'DELAY_TIMING')  setDelaySubcategory('')
-                      if (errors.category) setErrors(prev => ({ ...prev, category: '' }))
-                    }}
+                    onClick={() => handleCategorySelect(cat.value)}
                     className={cn(
                       'flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl border-2 font-medium text-sm transition-colors',
-                      isSuggestion && 'col-span-2 flex-row gap-3 py-3',
+                      isWide && 'col-span-2 flex-row gap-3 py-3',
                       isSuggestion && selected
                         ? 'border-teal-500 bg-teal-500 text-white'
                         : isSuggestion
                         ? 'border-teal-200 bg-teal-50 text-teal-700 active:bg-teal-100'
                         : selected
                         ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50'
+                        : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50',
                     )}
                   >
-                    <Icon size={isSuggestion ? 22 : 28} />
+                    {cat.emoji
+                      ? <span className="text-2xl leading-none">{cat.emoji}</span>
+                      : Icon && <Icon size={isWide ? 22 : 28} />}
                     <span className="text-center leading-tight">{cat.label}</span>
                   </button>
                 )
@@ -530,7 +572,133 @@ export default function ComplaintForm({ routes }: Props) {
             {errors.category && <p className="text-xs text-red-500 mt-2">{errors.category}</p>}
           </div>
 
-          {/* Bus Condition subcategory — required when BUS_CONDITION selected */}
+          {/* Driver subcategory */}
+          {category === 'DRIVER' && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  What went wrong? <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {DRIVER_SUBCATEGORIES.map((sub, i) => {
+                    const selected  = driverSubcategory === sub.value
+                    const isLastOdd = i === DRIVER_SUBCATEGORIES.length - 1 && DRIVER_SUBCATEGORIES.length % 2 !== 0
+                    return (
+                      <button
+                        key={sub.value}
+                        type="button"
+                        onClick={() => {
+                          setDriverSubcategory(sub.value)
+                          if (errors.driverSubcategory) setErrors(prev => ({ ...prev, driverSubcategory: '' }))
+                        }}
+                        className={cn(
+                          'flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl border-2 font-medium text-sm transition-colors',
+                          isLastOdd && 'col-span-2 flex-row gap-3 py-3',
+                          selected
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50',
+                        )}
+                      >
+                        <span className="text-2xl leading-none">{sub.emoji}</span>
+                        <span className="text-center leading-tight">{sub.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+                {errors.driverSubcategory && (
+                  <p className="text-xs text-red-500 mt-2">{errors.driverSubcategory}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Driver name <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={driverName}
+                  onChange={e => setDriverName(e.target.value)}
+                  placeholder="e.g. Muhammad Ahmed"
+                  className="w-full max-w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Agar yaad ho — ticket ya bus ke andar likha hota hai
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Steward subcategory + steward head checkbox */}
+          {category === 'STEWARD' && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  What went wrong? <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {STEWARD_SUBCATEGORIES.map((sub, i) => {
+                    const selected  = stewardSubcategory === sub.value
+                    const isLastOdd = i === STEWARD_SUBCATEGORIES.length - 1 && STEWARD_SUBCATEGORIES.length % 2 !== 0
+                    return (
+                      <button
+                        key={sub.value}
+                        type="button"
+                        onClick={() => {
+                          setStewardSubcategory(sub.value)
+                          if (errors.stewardSubcategory) setErrors(prev => ({ ...prev, stewardSubcategory: '' }))
+                        }}
+                        className={cn(
+                          'flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl border-2 font-medium text-sm transition-colors',
+                          isLastOdd && 'col-span-2 flex-row gap-3 py-3',
+                          selected
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50',
+                        )}
+                      >
+                        <span className="text-2xl leading-none">{sub.emoji}</span>
+                        <span className="text-center leading-tight">{sub.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+                {errors.stewardSubcategory && (
+                  <p className="text-xs text-red-500 mt-2">{errors.stewardSubcategory}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Steward name <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={stewardName}
+                  onChange={e => setStewardName(e.target.value)}
+                  placeholder="e.g. Ali Hassan"
+                  className="w-full max-w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Agar yaad ho — ticket ya bus ke andar likha hota hai
+                </p>
+              </div>
+
+              <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <input
+                  id="steward-head-flag"
+                  type="checkbox"
+                  checked={isAboutStewardHead}
+                  onChange={e => setIsAboutStewardHead(e.target.checked)}
+                  className="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300 accent-primary"
+                />
+                <label htmlFor="steward-head-flag" className="text-sm text-amber-900">
+                  <span className="font-semibold block">This complaint is about the steward head</span>
+                  <span className="text-xs text-amber-700">Kya yeh complaint bara steward ke baray mein hai?</span>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* Bus Condition subcategory */}
           {category === 'BUS_CONDITION' && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -552,7 +720,7 @@ export default function ComplaintForm({ routes }: Props) {
                         'flex flex-col items-center justify-center gap-2 py-4 px-2 rounded-xl border-2 font-medium text-sm transition-colors',
                         selected
                           ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50'
+                          : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50',
                       )}
                     >
                       <span className="text-2xl leading-none">{sub.emoji}</span>
@@ -567,7 +735,7 @@ export default function ComplaintForm({ routes }: Props) {
             </div>
           )}
 
-          {/* Delay subcategory — required when DELAY_TIMING selected */}
+          {/* Delay subcategory */}
           {category === 'DELAY_TIMING' && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -575,8 +743,8 @@ export default function ComplaintForm({ routes }: Props) {
               </label>
               <div className="grid grid-cols-2 gap-3">
                 {DELAY_SUBCATEGORIES.map((sub, i) => {
-                  const selected   = delaySubcategory === sub.value
-                  const isLastOdd  = i === DELAY_SUBCATEGORIES.length - 1 && DELAY_SUBCATEGORIES.length % 2 !== 0
+                  const selected  = delaySubcategory === sub.value
+                  const isLastOdd = i === DELAY_SUBCATEGORIES.length - 1 && DELAY_SUBCATEGORIES.length % 2 !== 0
                   return (
                     <button
                       key={sub.value}
@@ -591,7 +759,7 @@ export default function ComplaintForm({ routes }: Props) {
                         isLastOdd && 'col-span-2 flex-row gap-3 py-3',
                         selected
                           ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50'
+                          : 'border-gray-200 bg-white text-gray-700 active:bg-gray-50',
                       )}
                     >
                       <span className="text-2xl leading-none">{sub.emoji}</span>
@@ -606,23 +774,6 @@ export default function ComplaintForm({ routes }: Props) {
             </div>
           )}
 
-          {/* Steward head flag — only shown for DRIVER_STEWARD */}
-          {category === 'DRIVER_STEWARD' && (
-            <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <input
-                id="steward-head-flag"
-                type="checkbox"
-                checked={isAboutStewardHead}
-                onChange={e => setIsAboutStewardHead(e.target.checked)}
-                className="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300 accent-primary"
-              />
-              <label htmlFor="steward-head-flag" className="text-sm text-amber-900">
-                <span className="font-semibold block">This complaint is about the steward head</span>
-                <span className="text-xs text-amber-700">Kya yeh complaint bara steward ke baray mein hai?</span>
-              </label>
-            </div>
-          )}
-
           {/* Passenger Name */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -634,7 +785,7 @@ export default function ComplaintForm({ routes }: Props) {
               value={passengerName}
               onChange={e => setPassengerName(e.target.value)}
               placeholder="Full name"
-              className="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full max-w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
@@ -649,7 +800,7 @@ export default function ComplaintForm({ routes }: Props) {
               onChange={e => setDescription(e.target.value.slice(0, 500))}
               placeholder="What happened? Brief detail..."
               rows={4}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+              className="w-full max-w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary resize-none"
             />
             <div className="flex justify-between mt-1">
               <p className="text-xs text-gray-400">Kya hua? Mukhtasar bataein</p>
@@ -700,14 +851,12 @@ export default function ComplaintForm({ routes }: Props) {
             {errors.photo && <p className="text-xs text-red-500 mt-1">{errors.photo}</p>}
           </div>
 
-          {/* Submit error */}
           {errors.submit && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
               {errors.submit}
             </div>
           )}
 
-          {/* Submit button */}
           <button
             type="submit"
             disabled={submitting}
