@@ -13,6 +13,7 @@ import type { LucideIcon } from 'lucide-react'
 
 // ── Types ────────────────────────────────────────────────────
 
+type Lang = 'en' | 'ur'
 type Route = { id: string; name: string }
 
 interface Props {
@@ -49,6 +50,310 @@ type ConfirmationData = {
   busNumber:       string
 }
 
+// ── Translations ─────────────────────────────────────────────
+
+const TRANSLATIONS = {
+  en: {
+    toggleLabel: 'اردو | English',
+    trustStrip: 'Your complaint goes directly to management',
+    subLine: 'Passenger complaints · Faisalabad',
+    heroTitle: 'Submit a Complaint',
+    heroSubtitle: 'Subhan Complaints — شکایت درج کریں',
+    heroHint: 'Hum sun rahay hain',
+
+    contactTitle: 'Your contact',
+    contactCaption: 'Taake hum aap se rabta kar sakein',
+    phoneLabel: 'Mobile Number',
+    phoneHint: 'Apna mobile number likhein',
+    nameLabel: 'Your Name',
+    namePlaceholder: 'Full name',
+    nameHint: 'Optional — agar batana chahein',
+
+    tripTitle: 'Your trip',
+    tripCaption: 'Safar ki tafseel',
+    routeLabel: 'Route',
+    routeHint: 'Apna safar ka rasta chunein',
+    routePlaceholder: 'Select route...',
+    dateLabel: 'Date of Travel',
+    timeLabel: 'Departure Time',
+    dateTimeHint: 'Tap to select — stored as 24-hour, shown as 12-hour on your phone',
+    busNumLabel: 'Bus Number',
+    busNumHint: 'Ticket ya bus ke andar likha number',
+
+    journeyLabel: 'YOUR JOURNEY',
+    departureLabel: 'Departure',
+    busNoLabel: 'Bus No.',
+
+    whatTitle: 'What happened?',
+    whatCaption: 'Kya masla hua?',
+    categoryLabel: 'Complaint Category',
+
+    catDriver: 'Driver',
+    catSteward: 'Steward',
+    catBus: 'Bus Condition',
+    catFood: 'Food / Drinks',
+    catDelay: 'Delay / Timing',
+    catTicket: 'Ticket / Refund',
+    catOther: 'Other / Serious',
+    catSuggestion: 'Suggestion / Feedback',
+
+    driverEyebrow: 'DRIVER · specifics',
+    driverReckless: 'Reckless / dangerous driving',
+    driverMobile: 'Mobile phone use while driving',
+    driverRude: 'Rude behavior',
+    driverOther: 'Other',
+    driverNameLabel: 'Driver name',
+    driverOptional: '(optional)',
+    driverNameHint: 'Agar yaad ho — ticket ya bus ke andar likha hota hai',
+
+    stewardEyebrow: 'STEWARD · specifics',
+    stewardRude: 'Rude behavior',
+    stewardUnresponsive: 'Unresponsive / not helping',
+    stewardNotServing: 'Not serving properly',
+    stewardOther: 'Other',
+    stewardNameLabel: 'Steward name',
+    stewardNameHint: 'Agar yaad ho — ticket ya bus ke andar likha hota hai',
+    stewardHeadTitle: 'This complaint is about the steward head',
+    stewardHeadSub: 'Kya yeh complaint bara steward ke baray mein hai?',
+
+    busEyebrow: 'BUS CONDITION · specifics',
+    busAC: 'AC / Heating',
+    busTablet: 'Entertainment Tablet',
+    busSeat: 'Seat',
+    busClean: 'Cleanliness',
+
+    delayEyebrow: 'DELAY / TIMING · specifics',
+    delayLate: 'Late Departure',
+    delayArrival: 'Late Arrival',
+    delayStops: 'Excessive Stops / Slow Journey',
+    delayOther: 'Other',
+
+    sevHigh: 'High priority',
+    sevHighRoute: 'Flagged to admin',
+    sevMed: 'Medium priority',
+    sevMedRoute: 'Sent to team lead',
+    sevLow: 'Low priority',
+    sevLowRoute: 'Standard queue',
+
+    descLabel: 'Description',
+    descPlaceholder: 'What happened? Brief detail...',
+    descHint: 'Kya hua? Mukhtasar bataein',
+
+    photoLabel: 'Photo',
+    photoTap: 'Tap to upload photo',
+    photoSub: 'Camera · gallery · max 5 MB',
+    photoError: 'Photo must be under 5MB',
+
+    submitBtn: 'Submit Complaint',
+    submitting: 'Submitting...',
+    submitNote: 'Reference generated instantly · response within 24 hours',
+    submitError: 'Something went wrong. Please try again.',
+
+    errPhone: 'Enter a valid Pakistani number (03XX-XXXXXXX)',
+    errRoute: 'Please select a route',
+    errDate: 'Please select the date of travel',
+    errTime: 'Please select the departure time',
+    errCategory: 'Please select a complaint category',
+    errDriverSub: 'Please select what went wrong',
+    errStewardSub: 'Please select what went wrong',
+    errBusSub: 'Please select what specifically went wrong',
+    errDelaySub: 'Please select the type of delay',
+    errBusNum: 'Please enter the bus number',
+
+    optionalBadge: 'Optional',
+
+    confTitle: 'Complaint Received',
+    confSub: 'Aap ki complaint hamare paas pahunch gayi hai',
+    confReceipt: 'COMPLAINT RECEIPT',
+    confRefLabel: 'REFERENCE NUMBER',
+    confScreenshot: 'Screenshot to track later',
+    confDate: 'Date',
+    confTime: 'Time',
+    confBus: 'Bus',
+    confNext: 'What happens next',
+    confStep1Title: 'Auto-triaged',
+    confStep1Sub: 'Sent to the right team in seconds',
+    confStep2Title: 'We investigate',
+    confStep2Sub: 'Within 24 hours, on WhatsApp',
+    confStep3Title: 'Resolution + follow-up',
+    confStep3Sub: 'Plus a satisfaction check',
+    confShare: 'Share',
+    confTrack: 'Track status',
+    confScreenshotNote: 'Please screenshot this page for your records',
+    confBack: '← Back to the form',
+  },
+  ur: {
+    toggleLabel: 'اردو | English',
+    trustStrip: 'آپ کی شکایت براہ راست انتظامیہ تک جاتی ہے',
+    subLine: 'مسافر شکایات · فیصل آباد',
+    heroTitle: 'شکایت درج کریں',
+    heroSubtitle: 'سبحان کمپلینٹس — Subhan Complaints',
+    heroHint: 'ہم سن رہے ہیں',
+
+    contactTitle: 'آپ کا رابطہ',
+    contactCaption: 'تاکہ ہم آپ سے رابطہ کر سکیں',
+    phoneLabel: 'موبائل نمبر',
+    phoneHint: 'اپنا موبائل نمبر لکھیں',
+    nameLabel: 'آپ کا نام',
+    namePlaceholder: 'پورا نام',
+    nameHint: 'اختیاری — اگر بتانا چاہیں',
+
+    tripTitle: 'آپ کا سفر',
+    tripCaption: 'سفر کی تفصیل',
+    routeLabel: 'راستہ',
+    routeHint: 'اپنے سفر کا راستہ چنیں',
+    routePlaceholder: 'راستہ چنیں...',
+    dateLabel: 'سفر کی تاریخ',
+    timeLabel: 'روانگی کا وقت',
+    dateTimeHint: 'ٹیپ کر کے چنیں — 24 گھنٹے فارمیٹ میں محفوظ، فون پر 12 گھنٹے',
+    busNumLabel: 'بس نمبر',
+    busNumHint: 'ٹکٹ یا بس کے اندر لکھا نمبر',
+
+    journeyLabel: 'آپ کا سفر',
+    departureLabel: 'روانگی',
+    busNoLabel: 'بس نمبر',
+
+    whatTitle: 'کیا ہوا؟',
+    whatCaption: 'کیا مسئلہ ہوا؟',
+    categoryLabel: 'شکایت کی قسم',
+
+    catDriver: 'ڈرائیور',
+    catSteward: 'اسٹیورڈ',
+    catBus: 'بس کی حالت',
+    catFood: 'کھانا / مشروبات',
+    catDelay: 'تاخیر / وقت',
+    catTicket: 'ٹکٹ / واپسی',
+    catOther: 'دیگر / سنگین',
+    catSuggestion: 'تجویز / رائے',
+
+    driverEyebrow: 'ڈرائیور · تفصیل',
+    driverReckless: 'غیر محتاط / خطرناک ڈرائیونگ',
+    driverMobile: 'گاڑی چلاتے ہوئے موبائل استعمال',
+    driverRude: 'بدتمیزی',
+    driverOther: 'دیگر',
+    driverNameLabel: 'ڈرائیور کا نام',
+    driverOptional: '(اختیاری)',
+    driverNameHint: 'اگر یاد ہو — ٹکٹ یا بس کے اندر لکھا ہوتا ہے',
+
+    stewardEyebrow: 'اسٹیورڈ · تفصیل',
+    stewardRude: 'بدتمیزی',
+    stewardUnresponsive: 'غیر جوابدہ / مدد نہ کرنا',
+    stewardNotServing: 'صحیح خدمت نہ کرنا',
+    stewardOther: 'دیگر',
+    stewardNameLabel: 'اسٹیورڈ کا نام',
+    stewardNameHint: 'اگر یاد ہو — ٹکٹ یا بس کے اندر لکھا ہوتا ہے',
+    stewardHeadTitle: 'یہ شکایت بڑے اسٹیورڈ کے بارے میں ہے',
+    stewardHeadSub: 'کیا یہ شکایت بڑے اسٹیورڈ کے بارے میں ہے؟',
+
+    busEyebrow: 'بس کی حالت · تفصیل',
+    busAC: 'اے سی / حرارت',
+    busTablet: 'تفریحی ٹیبلٹ',
+    busSeat: 'سیٹ',
+    busClean: 'صفائی',
+
+    delayEyebrow: 'تاخیر / وقت · تفصیل',
+    delayLate: 'دیر سے روانگی',
+    delayArrival: 'دیر سے پہنچنا',
+    delayStops: 'ضرورت سے زیادہ اسٹاپ / سست سفر',
+    delayOther: 'دیگر',
+
+    sevHigh: 'اعلیٰ ترجیح',
+    sevHighRoute: 'انتظامیہ کو بھیجا گیا',
+    sevMed: 'درمیانی ترجیح',
+    sevMedRoute: 'ٹیم لیڈ کو بھیجا گیا',
+    sevLow: 'کم ترجیح',
+    sevLowRoute: 'معیاری قطار',
+
+    descLabel: 'تفصیل',
+    descPlaceholder: 'کیا ہوا؟ مختصر تفصیل...',
+    descHint: 'کیا ہوا؟ مختصر بتائیں',
+
+    photoLabel: 'تصویر',
+    photoTap: 'تصویر اپ لوڈ کرنے کے لیے ٹیپ کریں',
+    photoSub: 'کیمرہ · گیلری · زیادہ سے زیادہ 5 MB',
+    photoError: 'تصویر 5MB سے کم ہونی چاہیے',
+
+    submitBtn: 'شکایت جمع کریں',
+    submitting: 'جمع ہو رہا ہے...',
+    submitNote: 'حوالہ نمبر فوری بنتا ہے · 24 گھنٹے میں جواب',
+    submitError: 'کچھ غلط ہوا۔ براہ کرم دوبارہ کوشش کریں۔',
+
+    errPhone: 'درست پاکستانی نمبر درج کریں (03XX-XXXXXXX)',
+    errRoute: 'براہ کرم راستہ چنیں',
+    errDate: 'براہ کرم سفر کی تاریخ چنیں',
+    errTime: 'براہ کرم روانگی کا وقت چنیں',
+    errCategory: 'براہ کرم شکایت کی قسم چنیں',
+    errDriverSub: 'براہ کرم بتائیں کیا غلط ہوا',
+    errStewardSub: 'براہ کرم بتائیں کیا غلط ہوا',
+    errBusSub: 'براہ کرم بتائیں کیا مخصوص مسئلہ ہوا',
+    errDelaySub: 'براہ کرم تاخیر کی قسم چنیں',
+    errBusNum: 'براہ کرم بس نمبر درج کریں',
+
+    optionalBadge: 'اختیاری',
+
+    confTitle: 'شکایت موصول ہوئی',
+    confSub: 'آپ کی شکایت ہمارے پاس پہنچ گئی ہے',
+    confReceipt: 'شکایت رسید',
+    confRefLabel: 'حوالہ نمبر',
+    confScreenshot: 'بعد میں ٹریک کرنے کے لیے اسکرین شاٹ لیں',
+    confDate: 'تاریخ',
+    confTime: 'وقت',
+    confBus: 'بس',
+    confNext: 'آگے کیا ہوگا',
+    confStep1Title: 'خودکار طور پر ترتیب دیا گیا',
+    confStep1Sub: 'چند سیکنڈ میں صحیح ٹیم کو بھیجا گیا',
+    confStep2Title: 'ہم تحقیق کرتے ہیں',
+    confStep2Sub: '24 گھنٹوں میں، واٹس ایپ پر',
+    confStep3Title: 'حل + فالو اپ',
+    confStep3Sub: 'اطمینان کی جانچ کے ساتھ',
+    confShare: 'شیئر کریں',
+    confTrack: 'حالت دیکھیں',
+    confScreenshotNote: 'اپنے ریکارڈ کے لیے اس صفحے کا اسکرین شاٹ لیں',
+    confBack: '← فارم پر واپس جائیں',
+  },
+} satisfies Record<Lang, Record<string, string>>
+
+// ── Category / subcategory label key maps ────────────────────
+
+const CAT_KEY: Record<string, keyof typeof TRANSLATIONS.en> = {
+  DRIVER:              'catDriver',
+  STEWARD:             'catSteward',
+  BUS_CONDITION:       'catBus',
+  FOOD_DRINKS:         'catFood',
+  DELAY_TIMING:        'catDelay',
+  TICKET_REFUND:       'catTicket',
+  OTHER_SERIOUS:       'catOther',
+  SUGGESTION_FEEDBACK: 'catSuggestion',
+}
+
+const DRIVER_KEY: Record<string, keyof typeof TRANSLATIONS.en> = {
+  RECKLESS_DRIVING: 'driverReckless',
+  MOBILE_USE:       'driverMobile',
+  RUDE_BEHAVIOR:    'driverRude',
+  OTHER:            'driverOther',
+}
+
+const STEWARD_KEY: Record<string, keyof typeof TRANSLATIONS.en> = {
+  RUDE_BEHAVIOR:        'stewardRude',
+  UNRESPONSIVE:         'stewardUnresponsive',
+  NOT_SERVING_PROPERLY: 'stewardNotServing',
+  OTHER:                'stewardOther',
+}
+
+const BUS_KEY: Record<string, keyof typeof TRANSLATIONS.en> = {
+  AC_HEATING:           'busAC',
+  ENTERTAINMENT_TABLET: 'busTablet',
+  SEAT:                 'busSeat',
+  CLEANLINESS:          'busClean',
+}
+
+const DELAY_KEY: Record<string, keyof typeof TRANSLATIONS.en> = {
+  LATE_DEPARTURE:  'delayLate',
+  LATE_ARRIVAL:    'delayArrival',
+  EXCESSIVE_STOPS: 'delayStops',
+  OTHER:           'delayOther',
+}
+
 // ── Constants ────────────────────────────────────────────────
 
 const CATEGORIES: CategoryEntry[] = [
@@ -65,10 +370,10 @@ const CATEGORIES: CategoryEntry[] = [
 const NON_SUGGESTION_COUNT = CATEGORIES.filter(c => !c.variant).length
 
 const BUS_CONDITION_SUBCATEGORIES: BusSubcategoryEntry[] = [
-  { value: 'AC_HEATING',           label: 'AC / Heating',         icon: Wind,      severity: 'MEDIUM', isMaintenanceRequired: true  },
+  { value: 'AC_HEATING',           label: 'AC / Heating',         icon: Wind,       severity: 'MEDIUM', isMaintenanceRequired: true  },
   { value: 'ENTERTAINMENT_TABLET', label: 'Entertainment Tablet', icon: Smartphone, severity: 'MEDIUM', isMaintenanceRequired: true  },
-  { value: 'SEAT',                 label: 'Seat',                 icon: Armchair,  severity: 'MEDIUM', isMaintenanceRequired: true  },
-  { value: 'CLEANLINESS',          label: 'Cleanliness',          icon: Sparkles,  severity: 'HIGH',   isMaintenanceRequired: false },
+  { value: 'SEAT',                 label: 'Seat',                 icon: Armchair,   severity: 'MEDIUM', isMaintenanceRequired: true  },
+  { value: 'CLEANLINESS',          label: 'Cleanliness',          icon: Sparkles,   severity: 'HIGH',   isMaintenanceRequired: false },
 ]
 
 const DELAY_SUBCATEGORIES: SubcategoryEntry[] = [
@@ -170,14 +475,14 @@ function SectionHeader({ title, caption }: { title: string; caption: string }) {
   )
 }
 
-function FieldLabel({ children, required, optional }: { children: React.ReactNode; required?: boolean; optional?: boolean }) {
+function FieldLabel({ children, required, optional }: { children: React.ReactNode; required?: boolean; optional?: string }) {
   return (
     <div className="flex items-center gap-1.5 mb-1.5">
       <label className="text-[13px] font-semibold">{children}</label>
       {required && <span className="text-destructive text-xs leading-none">*</span>}
       {optional && (
         <span className="text-[10px] uppercase tracking-wide text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full leading-none">
-          Optional
+          {optional}
         </span>
       )}
     </div>
@@ -204,9 +509,10 @@ function SubcategoryReveal({ eyebrow, error, children }: { eyebrow: string; erro
 }
 
 function SubPill({
-  sub, selected, onClick,
+  sub, label, selected, onClick,
 }: {
   sub: SubcategoryEntry | BusSubcategoryEntry
+  label: string
   selected: boolean
   onClick: () => void
 }) {
@@ -228,16 +534,14 @@ function SubPill({
       )}>
         <Icon size={17} className={selected ? 'text-primary-foreground' : 'text-primary'} />
       </div>
-      <span className="text-[13px] font-medium leading-tight">{sub.label}</span>
+      <span className="text-[13px] font-medium leading-tight">{label}</span>
     </button>
   )
 }
 
-function SeverityBar({ severity }: { severity: 'HIGH' | 'MEDIUM' | 'LOW' }) {
-  const filled  = severity === 'HIGH' ? 3 : severity === 'MEDIUM' ? 2 : 1
-  const label   = severity === 'HIGH' ? 'High priority' : severity === 'MEDIUM' ? 'Medium priority' : 'Low priority'
-  const routing = severity === 'HIGH' ? 'Flagged to admin' : severity === 'MEDIUM' ? 'Sent to team lead' : 'Standard queue'
-  const pip     = severity === 'HIGH' ? 'bg-destructive' : severity === 'MEDIUM' ? 'bg-[#B47339]' : 'bg-primary'
+function SeverityBar({ severity, label, routing }: { severity: 'HIGH' | 'MEDIUM' | 'LOW'; label: string; routing: string }) {
+  const filled = severity === 'HIGH' ? 3 : severity === 'MEDIUM' ? 2 : 1
+  const pip    = severity === 'HIGH' ? 'bg-destructive' : severity === 'MEDIUM' ? 'bg-[#B47339]' : 'bg-primary'
   return (
     <div className="flex items-center gap-3 px-3 py-2.5 bg-muted rounded-xl">
       <div className="flex gap-1 shrink-0">
@@ -266,8 +570,9 @@ function parseRouteName(name: string) {
   return { fromCode: code(from), from, toCode: code(to), to }
 }
 
-function JourneyStrip({ routeName, travelDate, departureTime, busNumber }: {
+function JourneyStrip({ routeName, travelDate, departureTime, busNumber, labels }: {
   routeName: string; travelDate: string; departureTime: string; busNumber: string
+  labels: { journey: string; departure: string; busNo: string }
 }) {
   const route = routeName ? parseRouteName(routeName) : null
   const displayDate = travelDate
@@ -278,7 +583,7 @@ function JourneyStrip({ routeName, travelDate, departureTime, busNumber }: {
   return (
     <div className="rounded-[18px] bg-card border border-[#E1D9C5] overflow-hidden">
       <div className="flex items-center justify-between px-4 pt-3 pb-1.5">
-        <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-[#9AA59C]">YOUR JOURNEY</p>
+        <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-[#9AA59C]">{labels.journey}</p>
         <p className="font-mono-brand text-[10px] text-[#9AA59C]">{displayDate}</p>
       </div>
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 py-1">
@@ -312,11 +617,11 @@ function JourneyStrip({ routeName, travelDate, departureTime, busNumber }: {
       </div>
       <div className="flex items-center justify-between px-4 pb-3">
         <div>
-          <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">Departure</p>
+          <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">{labels.departure}</p>
           <p className="font-mono-brand text-[13px] font-medium">{departureTime || '--:--'}</p>
         </div>
         <div className="text-right">
-          <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">Bus No.</p>
+          <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">{labels.busNo}</p>
           <p className="font-mono-brand text-[13px] font-medium">{busNumber || '—'}</p>
         </div>
       </div>
@@ -371,6 +676,22 @@ export default function ComplaintForm({ routes }: Props) {
 
   const initialRouteId = matchRouteId(qrRoute)
 
+  // ── Language ─────────────────────────────────────────────
+
+  const [lang, setLang] = useState<Lang>(() => {
+    if (typeof window === 'undefined') return 'en'
+    return (localStorage.getItem('subhan-lang') as Lang) ?? 'en'
+  })
+
+  const isRtl = lang === 'ur'
+  const t = (k: keyof typeof TRANSLATIONS.en) => TRANSLATIONS[lang][k]
+
+  function toggleLang() {
+    const next: Lang = lang === 'en' ? 'ur' : 'en'
+    setLang(next)
+    localStorage.setItem('subhan-lang', next)
+  }
+
   // ── Form state ───────────────────────────────────────────
 
   const [phone,                   setPhone]                   = useState('')
@@ -413,7 +734,7 @@ export default function ComplaintForm({ routes }: Props) {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 5 * 1024 * 1024) {
-      setErrors(prev => ({ ...prev, photo: 'Photo must be under 5MB' }))
+      setErrors(prev => ({ ...prev, photo: t('photoError') }))
       return
     }
     setPhoto(file)
@@ -431,7 +752,6 @@ export default function ComplaintForm({ routes }: Props) {
 
   function handleCategorySelect(val: string) {
     setCategory(val)
-    // Reset all subcategory/name state when switching category
     setBusConditionSubcategory('')
     setDelaySubcategory('')
     setDriverSubcategory('')
@@ -445,25 +765,25 @@ export default function ComplaintForm({ routes }: Props) {
   function validate(): boolean {
     const e: Record<string, string> = {}
     if (!validatePhone(phone))
-      e.phone = 'Enter a valid Pakistani number (03XX-XXXXXXX)'
+      e.phone = t('errPhone')
     if (!routeId)
-      e.routeId = 'Please select a route'
+      e.routeId = t('errRoute')
     if (!travelDate)
-      e.travelDate = 'Please select the date of travel'
+      e.travelDate = t('errDate')
     if (!departureTime)
-      e.departureTime = 'Please select the departure time'
+      e.departureTime = t('errTime')
     if (!category)
-      e.category = 'Please select a complaint category'
+      e.category = t('errCategory')
     if (category === 'DRIVER' && !driverSubcategory)
-      e.driverSubcategory = 'Please select what went wrong'
+      e.driverSubcategory = t('errDriverSub')
     if (category === 'STEWARD' && !stewardSubcategory)
-      e.stewardSubcategory = 'Please select what went wrong'
+      e.stewardSubcategory = t('errStewardSub')
     if (category === 'BUS_CONDITION' && !busConditionSubcategory)
-      e.busConditionSubcategory = 'Please select what specifically went wrong'
+      e.busConditionSubcategory = t('errBusSub')
     if (category === 'DELAY_TIMING' && !delaySubcategory)
-      e.delaySubcategory = 'Please select the type of delay'
+      e.delaySubcategory = t('errDelaySub')
     if (!busNumber.trim())
-      e.busNumber = 'Please enter the bus number'
+      e.busNumber = t('errBusNum')
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -497,7 +817,6 @@ export default function ComplaintForm({ routes }: Props) {
     const cat = CATEGORIES.find(c => c.value === category)!
     const flagStewardHead = category === 'STEWARD' && (isAboutStewardHead || containsStewardHeadKeyword(description))
 
-    // BUS_CONDITION: severity comes from subcategory selection
     let finalSeverity: 'HIGH' | 'MEDIUM' | 'LOW' = cat.severity
     let isMaintenanceRequired = false
     if (category === 'BUS_CONDITION' && busConditionSubcategory) {
@@ -527,7 +846,7 @@ export default function ComplaintForm({ routes }: Props) {
 
     if (error || !complaint) {
       console.error('submit_complaint error:', error)
-      setErrors({ submit: 'Something went wrong. Please try again.' })
+      setErrors({ submit: t('submitError') })
       setSubmitting(false)
       return
     }
@@ -556,6 +875,9 @@ export default function ComplaintForm({ routes }: Props) {
     }
   }
 
+  const sevLabel   = computedSeverity === 'HIGH' ? t('sevHigh') : computedSeverity === 'MEDIUM' ? t('sevMed') : t('sevLow')
+  const sevRouting = computedSeverity === 'HIGH' ? t('sevHighRoute') : computedSeverity === 'MEDIUM' ? t('sevMedRoute') : t('sevLowRoute')
+
   // ── Confirmation screen ──────────────────────────────────
 
   if (confirmation) {
@@ -569,8 +891,17 @@ export default function ComplaintForm({ routes }: Props) {
           .toLocaleDateString('en-PK', { day: 'numeric', month: 'short' }).toUpperCase()
       : '—'
 
+    const confSteps = [
+      { done: true,  title: t('confStep1Title'), sub: t('confStep1Sub') },
+      { done: false, title: t('confStep2Title'), sub: t('confStep2Sub') },
+      { done: false, title: t('confStep3Title'), sub: t('confStep3Sub') },
+    ]
+
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center px-4 py-10">
+      <div
+        dir={isRtl ? 'rtl' : undefined}
+        className="min-h-screen bg-background flex flex-col items-center px-4 py-10"
+      >
 
         {/* Check mark */}
         <div className="relative mb-5 flex items-center justify-center">
@@ -581,9 +912,9 @@ export default function ComplaintForm({ routes }: Props) {
           </div>
         </div>
 
-        <h1 className="text-[26px] font-semibold tracking-tight mb-1">Complaint Received</h1>
+        <h1 className="text-[26px] font-semibold tracking-tight mb-1">{t('confTitle')}</h1>
         <p className="text-[13px] text-muted-foreground mb-8 text-center">
-          Aap ki complaint hamare paas pahunch gayi hai
+          {t('confSub')}
         </p>
 
         {/* Receipt card */}
@@ -599,7 +930,7 @@ export default function ComplaintForm({ routes }: Props) {
                 </div>
                 <div>
                   <p className="text-[11px] font-bold tracking-[0.08em] uppercase leading-none">SUBHAN TRAVELS</p>
-                  <p className="text-[9px] text-muted-foreground mt-0.5 leading-none">COMPLAINT RECEIPT</p>
+                  <p className="text-[9px] text-muted-foreground mt-0.5 leading-none">{t('confReceipt')}</p>
                 </div>
               </div>
               <p className="font-mono-brand text-[10px] text-muted-foreground">{fmtDate.toUpperCase()}</p>
@@ -631,25 +962,25 @@ export default function ComplaintForm({ routes }: Props) {
 
             {/* Reference block */}
             <div className="text-center py-5">
-              <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-[#9AA59C] mb-1.5">REFERENCE NUMBER</p>
+              <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-[#9AA59C] mb-1.5">{t('confRefLabel')}</p>
               <p className="font-mono-brand text-[26px] font-bold text-primary tracking-widest leading-none">
                 {confirmation.referenceNumber}
               </p>
-              <p className="text-[11px] italic text-[#9AA59C] mt-2">Screenshot to track later</p>
+              <p className="text-[11px] italic text-[#9AA59C] mt-2">{t('confScreenshot')}</p>
             </div>
 
             {/* Trip details */}
             <div className="grid grid-cols-3 gap-2 pb-4 text-center">
               <div>
-                <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">Date</p>
+                <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">{t('confDate')}</p>
                 <p className="font-mono-brand text-[11px] font-medium">{fmtDateShort}</p>
               </div>
               <div>
-                <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">Time</p>
+                <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">{t('confTime')}</p>
                 <p className="font-mono-brand text-[11px] font-medium">{confirmation.departureTime || '—'}</p>
               </div>
               <div>
-                <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">Bus</p>
+                <p className="text-[9px] uppercase tracking-wider text-[#9AA59C] mb-0.5">{t('confBus')}</p>
                 <p className="font-mono-brand text-[11px] font-medium">{confirmation.busNumber}</p>
               </div>
             </div>
@@ -668,14 +999,10 @@ export default function ComplaintForm({ routes }: Props) {
 
         {/* What happens next */}
         <div className="w-full max-w-sm mt-6 bg-muted rounded-[18px] p-5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9AA59C] mb-4">What happens next</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9AA59C] mb-4">{t('confNext')}</p>
           <div className="relative">
             <div className="absolute left-[13px] top-7 bottom-7 w-px bg-border" />
-            {[
-              { done: true,  title: 'Auto-triaged',           sub: 'Sent to the right team in seconds' },
-              { done: false, title: 'We investigate',         sub: 'Within 24 hours, on WhatsApp'       },
-              { done: false, title: 'Resolution + follow-up', sub: 'Plus a satisfaction check'          },
-            ].map((step, i) => (
+            {confSteps.map((step, i) => (
               <div key={i} className={cn('flex gap-3', i < 2 && 'pb-5')}>
                 <div className={cn(
                   'relative z-10 w-7 h-7 rounded-full flex items-center justify-center shrink-0',
@@ -707,19 +1034,19 @@ export default function ComplaintForm({ routes }: Props) {
             className="h-[50px] rounded-xl border-2 border-primary text-primary font-semibold text-sm flex items-center justify-center gap-2"
           >
             <Share size={16} />
-            Share
+            {t('confShare')}
           </button>
           <a
             href={`/status/${confirmation.referenceNumber}`}
             className="h-[50px] rounded-xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2"
           >
-            Track status
+            {t('confTrack')}
             <ChevronRight size={16} />
           </a>
         </div>
 
         <p className="text-center text-xs text-[#9AA59C] mt-3 mb-1">
-          Please screenshot this page for your records
+          {t('confScreenshotNote')}
         </p>
 
         <button
@@ -727,7 +1054,7 @@ export default function ComplaintForm({ routes }: Props) {
           onClick={() => setConfirmation(null)}
           className="text-sm underline text-muted-foreground mt-1"
         >
-          ← Back to the form
+          {t('confBack')}
         </button>
 
       </div>
@@ -737,46 +1064,61 @@ export default function ComplaintForm({ routes }: Props) {
   // ── Form ─────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div dir={isRtl ? 'rtl' : undefined} className="min-h-screen bg-background overflow-x-hidden">
 
       {/* Trust strip */}
       <div className="bg-primary text-primary-foreground flex items-center justify-center gap-2 h-10 px-4 text-xs font-medium">
         <Shield size={13} className="shrink-0" />
-        <span>Your complaint goes directly to management</span>
+        <span>{t('trustStrip')}</span>
       </div>
 
       {/* Hero */}
       <div className="w-full max-w-lg mx-auto px-5 pt-5 pb-1">
+
+        {/* Language toggle */}
+        <div className={cn('flex mb-3', isRtl ? 'justify-start' : 'justify-end')}>
+          <button
+            type="button"
+            onClick={toggleLang}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-input bg-card text-[12px] font-medium text-muted-foreground active:bg-muted transition-colors"
+          >
+            <span className={cn(lang === 'ur' ? 'text-foreground font-semibold' : '')}>اردو</span>
+            <span className="text-[#C9C0A8]">|</span>
+            <span className={cn(lang === 'en' ? 'text-foreground font-semibold' : '')}>English</span>
+          </button>
+        </div>
+
         <div className="flex items-center gap-3 mb-4">
           <div className="w-11 h-11 rounded-full bg-primary flex items-center justify-center shrink-0">
             <Bus size={20} className="text-primary-foreground" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[17px] font-bold tracking-[0.06em] uppercase leading-tight">SUBHAN TRAVELS</p>
-            <p className="text-[12px] text-muted-foreground leading-tight">Passenger complaints · Faisalabad</p>
+            <p className="text-[12px] text-muted-foreground leading-tight">{t('subLine')}</p>
           </div>
           <div className="border-l border-dashed border-[#C9C0A8] pl-3 text-right shrink-0">
             <p className="text-[9px] font-bold tracking-widest uppercase text-[#9AA59C]">EST</p>
             <p className="font-mono-brand text-[13px] font-bold leading-tight">2014</p>
           </div>
         </div>
-        <h1 className="text-[30px] font-semibold tracking-tight leading-tight">Submit a Complaint</h1>
-        <p className="text-[13px] text-muted-foreground mt-1">Subhan Complaints — شکایت درج کریں</p>
-        <p className="text-[12px] italic text-[#9AA59C] mt-0.5">Hum sun rahay hain</p>
+        <h1 className="text-[30px] font-semibold tracking-tight leading-tight">{t('heroTitle')}</h1>
+        <p className="text-[13px] text-muted-foreground mt-1">{t('heroSubtitle')}</p>
+        <p className="text-[12px] italic text-[#9AA59C] mt-0.5">{t('heroHint')}</p>
       </div>
 
-      {/* Form — submit button is outside via form="cf" */}
+      {/* Form */}
       <form id="cf" onSubmit={handleSubmit} noValidate className="w-full max-w-lg mx-auto px-5 pb-32">
 
         {/* ── Section: Your contact ─────────────────────── */}
         <div className="pt-6">
-          <SectionHeader title="Your contact" caption="Taake hum aap se rabta kar sakein" />
+          <SectionHeader title={t('contactTitle')} caption={t('contactCaption')} />
           <div className="space-y-4">
 
             {/* Phone */}
             <div>
-              <FieldLabel required>Mobile Number</FieldLabel>
+              <FieldLabel required>{t('phoneLabel')}</FieldLabel>
               <input
+                dir="ltr"
                 type="tel"
                 inputMode="numeric"
                 value={phone}
@@ -787,21 +1129,22 @@ export default function ComplaintForm({ routes }: Props) {
                   errors.phone ? 'border-destructive' : 'border-input',
                 )}
               />
-              <Hint>Apna mobile number likhein</Hint>
+              <Hint>{t('phoneHint')}</Hint>
               <FieldError msg={errors.phone} />
             </div>
 
             {/* Passenger Name */}
             <div>
-              <FieldLabel optional>Your Name</FieldLabel>
+              <FieldLabel optional={t('optionalBadge')}>{t('nameLabel')}</FieldLabel>
               <input
+                dir="ltr"
                 type="text"
                 value={passengerName}
                 onChange={e => setPassengerName(e.target.value)}
-                placeholder="Full name"
+                placeholder={t('namePlaceholder')}
                 className="w-full h-[52px] px-4 rounded-xl border border-input bg-card text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary"
               />
-              <Hint>Optional — agar batana chahein</Hint>
+              <Hint>{t('nameHint')}</Hint>
             </div>
 
           </div>
@@ -809,49 +1152,52 @@ export default function ComplaintForm({ routes }: Props) {
 
         {/* ── Section: Your trip ───────────────────────── */}
         <div className="pt-8">
-          <SectionHeader title="Your trip" caption="Safar ki tafseel" />
+          <SectionHeader title={t('tripTitle')} caption={t('tripCaption')} />
 
           <JourneyStrip
             routeName={routes.find(r => r.id === routeId)?.name ?? ''}
             travelDate={travelDate}
             departureTime={departureTime}
             busNumber={busNumber}
+            labels={{ journey: t('journeyLabel'), departure: t('departureLabel'), busNo: t('busNoLabel') }}
           />
 
           <div className="space-y-4 mt-4">
 
             {/* Route */}
             <div>
-              <FieldLabel required>Route</FieldLabel>
+              <FieldLabel required>{t('routeLabel')}</FieldLabel>
               <div className={cn(
                 'relative h-[52px] rounded-xl border bg-card overflow-hidden',
                 errors.routeId ? 'border-destructive' : 'border-input',
               )}>
                 <Bus size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <select
+                  dir="ltr"
                   value={routeId}
                   onChange={handleRouteChange}
                   className="w-full h-full pl-10 pr-4 bg-transparent text-base focus:outline-none focus:ring-4 focus:ring-primary/10 appearance-none cursor-pointer"
                 >
-                  <option value="">Select route...</option>
+                  <option value="">{t('routePlaceholder')}</option>
                   {routes.map(r => (
                     <option key={r.id} value={r.id}>{r.name}</option>
                   ))}
                 </select>
               </div>
-              <Hint>Apna safar ka rasta chunein</Hint>
+              <Hint>{t('routeHint')}</Hint>
               <FieldError msg={errors.routeId} />
             </div>
 
             {/* Travel Date + Departure Time */}
             <div className="grid grid-cols-[1.2fr_1fr] gap-3">
               <div>
-                <FieldLabel required>Date of Travel</FieldLabel>
+                <FieldLabel required>{t('dateLabel')}</FieldLabel>
                 <div className={cn(
                   'h-[52px] rounded-xl border bg-card overflow-hidden',
                   errors.travelDate ? 'border-destructive' : 'border-input',
                 )}>
                   <input
+                    dir="ltr"
                     type="date"
                     value={travelDate}
                     min={getMinDateStr()}
@@ -866,13 +1212,14 @@ export default function ComplaintForm({ routes }: Props) {
                 <FieldError msg={errors.travelDate} />
               </div>
               <div>
-                <FieldLabel required>Departure Time</FieldLabel>
+                <FieldLabel required>{t('timeLabel')}</FieldLabel>
                 <div className={cn(
                   'relative h-[52px] rounded-xl border bg-card overflow-hidden',
                   errors.departureTime ? 'border-destructive' : 'border-input',
                 )}>
                   <Clock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                   <input
+                    dir="ltr"
                     type="time"
                     value={departureTime}
                     onChange={e => {
@@ -885,17 +1232,18 @@ export default function ComplaintForm({ routes }: Props) {
                 <FieldError msg={errors.departureTime} />
               </div>
             </div>
-            <Hint>Tap to select — stored as 24-hour, shown as 12-hour on your phone</Hint>
+            <Hint>{t('dateTimeHint')}</Hint>
 
             {/* Bus Number */}
             <div>
-              <FieldLabel required>Bus Number</FieldLabel>
+              <FieldLabel required>{t('busNumLabel')}</FieldLabel>
               <div className={cn(
                 'relative h-[52px] rounded-xl border bg-card overflow-hidden',
                 errors.busNumber ? 'border-destructive' : 'border-input',
               )}>
                 <Hash size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <input
+                  dir="ltr"
                   type="text"
                   value={busNumber}
                   onChange={e => {
@@ -906,7 +1254,7 @@ export default function ComplaintForm({ routes }: Props) {
                   className="w-full h-full pl-9 pr-4 bg-transparent text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary"
                 />
               </div>
-              <Hint>Ticket ya bus ke andar likha number</Hint>
+              <Hint>{t('busNumHint')}</Hint>
               <FieldError msg={errors.busNumber} />
             </div>
 
@@ -915,12 +1263,12 @@ export default function ComplaintForm({ routes }: Props) {
 
         {/* ── Section: What happened? ───────────────────── */}
         <div className="pt-8">
-          <SectionHeader title="What happened?" caption="Kya masla hua?" />
+          <SectionHeader title={t('whatTitle')} caption={t('whatCaption')} />
           <div className="space-y-4">
 
             {/* Category grid */}
             <div>
-              <FieldLabel required>Complaint Category</FieldLabel>
+              <FieldLabel required>{t('categoryLabel')}</FieldLabel>
               <div className="grid grid-cols-2 gap-2.5">
                 {CATEGORIES.map((cat, i) => {
                   const Icon         = cat.icon
@@ -933,6 +1281,7 @@ export default function ComplaintForm({ routes }: Props) {
                   const unselClass   = isSugg
                     ? 'border-[#F2E4CF] bg-[#F2E4CF] text-[#B47339]'
                     : 'border-input bg-card text-foreground active:bg-muted'
+                  const catLabel = t(CAT_KEY[cat.value])
                   return (
                     <button
                       key={cat.value}
@@ -955,7 +1304,7 @@ export default function ComplaintForm({ routes }: Props) {
                       )}>
                         <Icon size={20} className={selected ? undefined : 'text-primary'} />
                       </div>
-                      <span className="text-[13.5px] font-semibold leading-tight">{cat.label}</span>
+                      <span className="text-[13.5px] font-semibold leading-tight">{catLabel}</span>
                     </button>
                   )
                 })}
@@ -965,12 +1314,13 @@ export default function ComplaintForm({ routes }: Props) {
 
             {/* Driver subcategory */}
             {category === 'DRIVER' && (
-              <SubcategoryReveal eyebrow="DRIVER · specifics" error={errors.driverSubcategory}>
+              <SubcategoryReveal eyebrow={t('driverEyebrow')} error={errors.driverSubcategory}>
                 <div className="grid grid-cols-2 gap-2.5">
                   {DRIVER_SUBCATEGORIES.map(sub => (
                     <SubPill
                       key={sub.value}
                       sub={sub}
+                      label={t(DRIVER_KEY[sub.value])}
                       selected={driverSubcategory === sub.value}
                       onClick={() => {
                         setDriverSubcategory(sub.value)
@@ -981,30 +1331,30 @@ export default function ComplaintForm({ routes }: Props) {
                 </div>
                 <div className="mt-3">
                   <label className="block text-[13px] font-semibold mb-1.5">
-                    Driver name <span className="text-muted-foreground font-normal text-xs">(optional)</span>
+                    {t('driverNameLabel')} <span className="text-muted-foreground font-normal text-xs">{t('driverOptional')}</span>
                   </label>
                   <input
+                    dir="ltr"
                     type="text"
                     value={driverName}
                     onChange={e => setDriverName(e.target.value)}
                     placeholder="e.g. Muhammad Ahmed"
                     className="w-full h-[52px] px-4 rounded-xl border border-input bg-card text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary"
                   />
-                  <p className="text-[11.5px] text-[#9AA59C] mt-1.5">
-                    Agar yaad ho — ticket ya bus ke andar likha hota hai
-                  </p>
+                  <p className="text-[11.5px] text-[#9AA59C] mt-1.5">{t('driverNameHint')}</p>
                 </div>
               </SubcategoryReveal>
             )}
 
             {/* Steward subcategory + head flag */}
             {category === 'STEWARD' && (
-              <SubcategoryReveal eyebrow="STEWARD · specifics" error={errors.stewardSubcategory}>
+              <SubcategoryReveal eyebrow={t('stewardEyebrow')} error={errors.stewardSubcategory}>
                 <div className="grid grid-cols-2 gap-2.5">
                   {STEWARD_SUBCATEGORIES.map(sub => (
                     <SubPill
                       key={sub.value}
                       sub={sub}
+                      label={t(STEWARD_KEY[sub.value])}
                       selected={stewardSubcategory === sub.value}
                       onClick={() => {
                         setStewardSubcategory(sub.value)
@@ -1015,18 +1365,17 @@ export default function ComplaintForm({ routes }: Props) {
                 </div>
                 <div className="mt-3">
                   <label className="block text-[13px] font-semibold mb-1.5">
-                    Steward name <span className="text-muted-foreground font-normal text-xs">(optional)</span>
+                    {t('stewardNameLabel')} <span className="text-muted-foreground font-normal text-xs">{t('driverOptional')}</span>
                   </label>
                   <input
+                    dir="ltr"
                     type="text"
                     value={stewardName}
                     onChange={e => setStewardName(e.target.value)}
                     placeholder="e.g. Ali Hassan"
                     className="w-full h-[52px] px-4 rounded-xl border border-input bg-card text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary"
                   />
-                  <p className="text-[11.5px] text-[#9AA59C] mt-1.5">
-                    Agar yaad ho — ticket ya bus ke andar likha hota hai
-                  </p>
+                  <p className="text-[11.5px] text-[#9AA59C] mt-1.5">{t('stewardNameHint')}</p>
                 </div>
                 <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 mt-3">
                   <input
@@ -1037,8 +1386,8 @@ export default function ComplaintForm({ routes }: Props) {
                     className="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300 accent-primary"
                   />
                   <label htmlFor="steward-head-flag" className="text-sm text-amber-900">
-                    <span className="font-semibold block">This complaint is about the steward head</span>
-                    <span className="text-xs text-amber-700">Kya yeh complaint bara steward ke baray mein hai?</span>
+                    <span className="font-semibold block">{t('stewardHeadTitle')}</span>
+                    <span className="text-xs text-amber-700">{t('stewardHeadSub')}</span>
                   </label>
                 </div>
               </SubcategoryReveal>
@@ -1046,12 +1395,13 @@ export default function ComplaintForm({ routes }: Props) {
 
             {/* Bus Condition subcategory */}
             {category === 'BUS_CONDITION' && (
-              <SubcategoryReveal eyebrow="BUS CONDITION · specifics" error={errors.busConditionSubcategory}>
+              <SubcategoryReveal eyebrow={t('busEyebrow')} error={errors.busConditionSubcategory}>
                 <div className="grid grid-cols-2 gap-2.5">
                   {BUS_CONDITION_SUBCATEGORIES.map(sub => (
                     <SubPill
                       key={sub.value}
                       sub={sub}
+                      label={t(BUS_KEY[sub.value])}
                       selected={busConditionSubcategory === sub.value}
                       onClick={() => {
                         setBusConditionSubcategory(sub.value)
@@ -1066,12 +1416,13 @@ export default function ComplaintForm({ routes }: Props) {
 
             {/* Delay subcategory */}
             {category === 'DELAY_TIMING' && (
-              <SubcategoryReveal eyebrow="DELAY / TIMING · specifics" error={errors.delaySubcategory}>
+              <SubcategoryReveal eyebrow={t('delayEyebrow')} error={errors.delaySubcategory}>
                 <div className="grid grid-cols-2 gap-2.5">
                   {DELAY_SUBCATEGORIES.map(sub => (
                     <SubPill
                       key={sub.value}
                       sub={sub}
+                      label={t(DELAY_KEY[sub.value])}
                       selected={delaySubcategory === sub.value}
                       onClick={() => {
                         setDelaySubcategory(sub.value)
@@ -1085,27 +1436,30 @@ export default function ComplaintForm({ routes }: Props) {
             )}
 
             {/* Severity bar */}
-            {computedSeverity && <SeverityBar severity={computedSeverity} />}
+            {computedSeverity && (
+              <SeverityBar severity={computedSeverity} label={sevLabel} routing={sevRouting} />
+            )}
 
             {/* Description */}
             <div>
-              <FieldLabel optional>Description</FieldLabel>
+              <FieldLabel optional={t('optionalBadge')}>{t('descLabel')}</FieldLabel>
               <textarea
+                dir="ltr"
                 value={description}
                 onChange={e => setDescription(e.target.value.slice(0, 500))}
-                placeholder="What happened? Brief detail..."
+                placeholder={t('descPlaceholder')}
                 rows={4}
                 className="w-full px-4 py-3 rounded-xl border border-input bg-card text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary resize-none"
               />
               <div className="flex justify-between mt-1.5">
-                <p className="text-[11.5px] text-[#9AA59C]">Kya hua? Mukhtasar bataein</p>
+                <p className="text-[11.5px] text-[#9AA59C]">{t('descHint')}</p>
                 <p className="text-[11.5px] text-[#9AA59C]">{description.length}/500</p>
               </div>
             </div>
 
             {/* Photo */}
             <div>
-              <FieldLabel optional>Photo</FieldLabel>
+              <FieldLabel optional={t('optionalBadge')}>{t('photoLabel')}</FieldLabel>
               {photoPreview ? (
                 <div className="relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1128,8 +1482,8 @@ export default function ComplaintForm({ routes }: Props) {
                     <Camera size={20} />
                   </div>
                   <div className="text-left">
-                    <p className="text-[13px] font-medium">Tap to upload photo</p>
-                    <p className="text-[11px] text-[#9AA59C]">Camera · gallery · max 5 MB</p>
+                    <p className="text-[13px] font-medium">{t('photoTap')}</p>
+                    <p className="text-[11px] text-[#9AA59C]">{t('photoSub')}</p>
                   </div>
                 </button>
               )}
@@ -1165,15 +1519,15 @@ export default function ComplaintForm({ routes }: Props) {
             disabled={submitting}
             className="w-full h-14 rounded-xl bg-primary text-primary-foreground font-bold text-base disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg"
           >
-            {submitting ? 'Submitting...' : (
+            {submitting ? t('submitting') : (
               <>
-                Submit Complaint
+                {t('submitBtn')}
                 <ChevronRight size={18} />
               </>
             )}
           </button>
           <p className="text-center text-[11px] text-[#9AA59C] mt-2">
-            Reference generated instantly · response within 24 hours
+            {t('submitNote')}
           </p>
         </div>
       </div>
