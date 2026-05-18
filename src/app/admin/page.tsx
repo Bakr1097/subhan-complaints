@@ -18,46 +18,57 @@ export default async function AdminPage() {
     .eq('id', user.id)
     .single()
 
-  if (!profile || profile.role !== 'ADMIN') redirect('/staff/dashboard')
+  if (!profile || (profile.role !== 'ADMIN' && profile.role !== 'STEWARD_HEAD')) {
+    redirect('/staff/dashboard')
+  }
 
-  const [{ data: staffList }, { data: routeList }, { data: rawAudit }] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('id, full_name, phone, role, is_active, created_at')
-      .order('created_at', { ascending: true }),
-    supabase
-      .from('routes')
-      .select('id, name, origin, destination, is_active, created_at')
-      .order('name', { ascending: true }),
-    supabase
-      .from('complaint_history')
-      .select('id, complaint_id, action_type, old_value, new_value, notes, performed_by_user_id, created_at, complaints(id, reference_number)')
-      .order('created_at', { ascending: false })
-      .limit(100),
-  ])
+  // Staff/Routes/Audit data only needed for ADMIN
+  let initialStaff:    object[] = []
+  let initialRoutes:   object[] = []
+  let auditLog:        object[] = []
 
-  // Flatten nested complaints join into a flat reference_number field
-  const auditLog = (rawAudit ?? []).map((entry) => {
-    const raw = entry as typeof entry & { complaints: { id: string; reference_number: string } | null }
-    return {
-      id:                   raw.id,
-      complaint_id:         raw.complaint_id,
-      action_type:          raw.action_type,
-      old_value:            raw.old_value,
-      new_value:            raw.new_value,
-      notes:                raw.notes,
-      performed_by_user_id: raw.performed_by_user_id,
-      created_at:           raw.created_at,
-      reference_number:     raw.complaints?.reference_number ?? '—',
-    }
-  })
+  if (profile.role === 'ADMIN') {
+    const [{ data: staffList }, { data: routeList }, { data: rawAudit }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id, full_name, phone, role, is_active, created_at')
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('routes')
+        .select('id, name, origin, destination, is_active, created_at')
+        .order('name', { ascending: true }),
+      supabase
+        .from('complaint_history')
+        .select('id, complaint_id, action_type, old_value, new_value, notes, performed_by_user_id, created_at, complaints(id, reference_number)')
+        .order('created_at', { ascending: false })
+        .limit(100),
+    ])
+
+    initialStaff  = staffList ?? []
+    initialRoutes = routeList ?? []
+    auditLog = (rawAudit ?? []).map((entry) => {
+      const raw = entry as typeof entry & { complaints: { id: string; reference_number: string } | null }
+      return {
+        id:                   raw.id,
+        complaint_id:         raw.complaint_id,
+        action_type:          raw.action_type,
+        old_value:            raw.old_value,
+        new_value:            raw.new_value,
+        notes:                raw.notes,
+        performed_by_user_id: raw.performed_by_user_id,
+        created_at:           raw.created_at,
+        reference_number:     raw.complaints?.reference_number ?? '—',
+      }
+    })
+  }
 
   return (
     <AdminPanel
       currentUserName={profile.full_name}
-      initialStaff={staffList ?? []}
-      initialRoutes={routeList ?? []}
-      initialAuditLog={auditLog}
+      userRole={profile.role as 'ADMIN' | 'STEWARD_HEAD'}
+      initialStaff={initialStaff as never[]}
+      initialRoutes={initialRoutes as never[]}
+      initialAuditLog={auditLog as never[]}
     />
   )
 }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { ArrowLeft, Plus, X, Eye, EyeOff, RefreshCw } from 'lucide-react'
+import AnalyticsTab from './AnalyticsTab'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -40,7 +41,7 @@ type AuditLogEntry = {
   reference_number:     string
 }
 
-type Tab = 'staff' | 'routes' | 'audit'
+type Tab = 'staff' | 'routes' | 'audit' | 'analytics'
 
 type Modal =
   | { kind: 'addStaff' }
@@ -66,16 +67,17 @@ function formatPhone(phone: string): string {
 
 interface Props {
   currentUserName:  string
+  userRole:         'ADMIN' | 'STEWARD_HEAD'
   initialStaff:     StaffProfile[]
   initialRoutes:    Route[]
   initialAuditLog:  AuditLogEntry[]
 }
 
-export default function AdminPanel({ currentUserName, initialStaff, initialRoutes, initialAuditLog }: Props) {
+export default function AdminPanel({ currentUserName, userRole, initialStaff, initialRoutes, initialAuditLog }: Props) {
   const router   = useRouter()
   const supabase = useMemo(() => createClient(), [])
 
-  const [tab,    setTab]    = useState<Tab>('staff')
+  const [tab,    setTab]    = useState<Tab>(userRole === 'STEWARD_HEAD' ? 'analytics' : 'staff')
   const [staff,  setStaff]  = useState(initialStaff)
   const [routes, setRoutes] = useState(initialRoutes)
   const [modal,  setModal]  = useState<Modal>(null)
@@ -112,19 +114,22 @@ export default function AdminPanel({ currentUserName, initialStaff, initialRoute
 
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-200 p-1 rounded-2xl">
-          {(['staff', 'routes', 'audit'] as Tab[]).map(t => (
+          {(userRole === 'ADMIN'
+            ? (['staff', 'routes', 'audit', 'analytics'] as Tab[])
+            : (['analytics'] as Tab[])
+          ).map(t => (
             <button
               key={t}
               type="button"
               onClick={() => setTab(t)}
               className={cn(
-                'flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors',
+                'flex-1 py-2.5 rounded-xl text-xs font-semibold transition-colors',
                 tab === t
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700',
               )}
             >
-              {t === 'staff' ? 'Staff Members' : t === 'routes' ? 'Routes' : 'Audit Log'}
+              {t === 'staff' ? 'Staff' : t === 'routes' ? 'Routes' : t === 'audit' ? 'Audit' : 'Analytics'}
             </button>
           ))}
         </div>
@@ -214,6 +219,11 @@ export default function AdminPanel({ currentUserName, initialStaff, initialRoute
         {/* ── Audit Log Tab ── */}
         {tab === 'audit' && (
           <AuditLogTab entries={initialAuditLog} staffMap={staffMap} />
+        )}
+
+        {/* ── Analytics Tab ── */}
+        {tab === 'analytics' && (
+          <AnalyticsTab userRole={userRole} />
         )}
 
       </main>
