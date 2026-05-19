@@ -12,17 +12,21 @@ import {
 type TimeRange = '7d' | '30d' | '90d' | 'all'
 
 type ComplaintRow = {
-  id:            string
-  created_at:    string
-  status:        string
-  severity:      string
-  category:      string
-  resolved_at:   string | null
-  csat_response: string | null
-  bus_number:    string | null
-  driver_name:   string | null
-  steward_name:  string | null
-  routes:        { name: string } | null
+  id:                        string
+  created_at:                string
+  status:                    string
+  severity:                  string
+  category:                  string
+  resolved_at:               string | null
+  csat_response:             string | null
+  bus_number:                string | null
+  driver_name:               string | null
+  steward_name:              string | null
+  driver_subcategory?:       string | null
+  steward_subcategory?:      string | null
+  bus_condition_subcategory?: string | null
+  delay_subcategory?:        string | null
+  routes:                    { name: string } | null
 }
 
 // ── Constants ─────────────────────────────────────────────────
@@ -39,6 +43,33 @@ const CATEGORY_LABELS: Record<string, string> = {
   SUGGESTION_FEEDBACK: 'Suggestion / Feedback',
 }
 
+// Readable labels for each subcategory enum value
+const SUBCAT_LABELS: Record<string, Record<string, string>> = {
+  DRIVER: {
+    RECKLESS_DRIVING:     'Reckless Driving',
+    MOBILE_USE:           'Mobile Use',
+    RUDE_BEHAVIOR:        'Rude Behavior',
+    OTHER:                'Other',
+  },
+  STEWARD: {
+    RUDE_BEHAVIOR:        'Rude Behavior',
+    UNRESPONSIVE:         'Unresponsive',
+    NOT_SERVING_PROPERLY: 'Not Serving Properly',
+    OTHER:                'Other',
+  },
+  BUS_CONDITION: {
+    AC_HEATING:           'AC / Heating',
+    ENTERTAINMENT_TABLET: 'Entertainment Tablet',
+    SEAT:                 'Seat',
+    CLEANLINESS:          'Cleanliness',
+  },
+  DELAY_TIMING: {
+    LATE_DEPARTURE:  'Late Departure',
+    LATE_ARRIVAL:    'Late Arrival',
+    EXCESSIVE_STOPS: 'Excessive Stops',
+  },
+}
+
 // ── Main component ────────────────────────────────────────────
 
 export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWARD_HEAD' }) {
@@ -52,7 +83,7 @@ export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWAR
       setLoading(true)
       const { data } = await supabase
         .from('complaints')
-        .select('id, created_at, status, severity, category, resolved_at, csat_response, bus_number, driver_name, steward_name, routes(name)')
+        .select('id, created_at, status, severity, category, resolved_at, csat_response, bus_number, driver_name, steward_name, bus_condition_subcategory, delay_subcategory, routes(name)')
         .order('created_at', { ascending: true })
       setComplaints((data as ComplaintRow[] | null) ?? [])
       setLoading(false)
@@ -164,13 +195,32 @@ export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWAR
     : trendData.length <= 31 ? Math.floor(trendData.length / 6)
     : Math.floor(trendData.length / 5)
 
-  // ── Section 7: By category ────────────────────────────────
+  // ── Section 7: By category + subcategories ───────────────
 
   const catMap: Record<string, number> = {}
   filtered.forEach(c => { catMap[c.category] = (catMap[c.category] ?? 0) + 1 })
   const byCategory = Object.entries(catMap)
-    .map(([cat, count]) => ({ label: CATEGORY_LABELS[cat] ?? cat, count }))
+    .map(([cat, count]) => ({ cat, label: CATEGORY_LABELS[cat] ?? cat, count }))
     .sort((a, b) => b.count - a.count)
+
+  // Per-category subcategory counts, respecting time range via `filtered`
+  const subcatData = useMemo(() => {
+    const maps: Record<string, Record<string, number>> = {
+      DRIVER: {}, STEWARD: {}, BUS_CONDITION: {}, DELAY_TIMING: {},
+    }
+    filtered.forEach(c => {
+      const sub =
+        c.category === 'DRIVER'        ? c.driver_subcategory :
+        c.category === 'STEWARD'       ? c.steward_subcategory :
+        c.category === 'BUS_CONDITION' ? c.bus_condition_subcategory :
+        c.category === 'DELAY_TIMING'  ? c.delay_subcategory :
+        null
+      if (sub && c.category in maps) {
+        maps[c.category][sub] = (maps[c.category][sub] ?? 0) + 1
+      }
+    })
+    return maps
+  }, [filtered])
 
   // ── Section 8: By route ───────────────────────────────────
 
@@ -370,10 +420,24 @@ export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWAR
       {/* 7 — By Category */}
       <Section title="Complaints by Category">
         {byCategory.length === 0 ? <EmptyState /> : (
-          <div className="space-y-2.5">
-            {byCategory.map(({ label, count }) => (
-              <RankedBar key={label} label={label} count={count} max={byCategory[0].count} />
-            ))}
+          <div className="space-y-4">
+            {byCategory.map(({ cat, label, count }) => {
+              const subMap   = subcatData[cat] ?? {}
+              const subLabels = SUBCAT_LABELS[cat] ?? {}
+              const subcats  = Object.entries(subMap)
+                .filter(([, n]) => n > 0)
+                .map(([key, n]) => ({ label: subLabels[key] ?? key, count: n }))
+                .sort((a, b) => b.count - a.count)
+              return (
+                <CategoryWithSubs
+                  key={cat}
+                  label={label}
+                  count={count}
+                  max={byCategory[0].count}
+                  subcats={subcats}
+                />
+              )
+            })}
           </div>
         )}
       </Section>
@@ -496,6 +560,47 @@ function RankedBar({ label, count, max }: { label: string; count: number; max: n
           style={{ width: `${pct}%` }}
         />
       </div>
+    </div>
+  )
+}
+
+function CategoryWithSubs({ label, count, max, subcats }: {
+  label:   string
+  count:   number
+  max:     number
+  subcats: { label: string; count: number }[]
+}) {
+  const pct = max > 0 ? (count / max) * 100 : 0
+  return (
+    <div>
+      {/* Category row */}
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-[13px] font-semibold text-gray-800 truncate pr-2">{label}</p>
+        <p className="text-[13px] font-bold text-gray-900 tabular-nums shrink-0">{count}</p>
+      </div>
+      <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-2">
+        <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+      </div>
+
+      {/* Subcategory rows — indented, only if any exist */}
+      {subcats.length > 0 && (
+        <div className="ml-3 pl-3 border-l-2 border-gray-100 space-y-2">
+          {subcats.map(sub => {
+            const subPct = count > 0 ? (sub.count / count) * 100 : 0
+            return (
+              <div key={sub.label}>
+                <div className="flex items-center justify-between mb-0.5">
+                  <p className="text-[11.5px] text-gray-500 truncate pr-2">{sub.label}</p>
+                  <p className="text-[11.5px] font-medium text-gray-600 tabular-nums shrink-0">{sub.count}</p>
+                </div>
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-primary/35 rounded-full" style={{ width: `${subPct}%` }} />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
