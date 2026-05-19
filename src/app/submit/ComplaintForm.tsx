@@ -840,6 +840,10 @@ export default function ComplaintForm({ routes }: Props) {
       p_bus_condition_subcategory: category === 'BUS_CONDITION' ? busConditionSubcategory || null : null,
       p_is_maintenance_required:   isMaintenanceRequired,
       p_delay_subcategory:         category === 'DELAY_TIMING'  ? delaySubcategory   || null : null,
+      p_driver_subcategory:        category === 'DRIVER'        ? driverSubcategory  || null : null,
+      p_steward_subcategory:       category === 'STEWARD'       ? stewardSubcategory || null : null,
+      p_driver_name:               category === 'DRIVER'        ? driverName.trim()  || null : null,
+      p_steward_name:              category === 'STEWARD'       ? stewardName.trim() || null : null,
     })
 
     const complaint = Array.isArray(data) ? data[0] : data
