@@ -104,7 +104,7 @@ export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWAR
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeRange])
 
-  const allComplaints = complaints ?? []
+  const allComplaints = useMemo(() => complaints ?? [], [complaints])
 
   const filtered = useMemo(
     () => rangeStart
@@ -542,24 +542,6 @@ function SeverityTile({ label, count, pct, color, bg, border }: {
       <p className={cn('text-[22px] font-bold leading-none tabular-nums', color)}>{count}</p>
       <p className="text-[11px] font-semibold text-gray-500 mt-0.5">{label}</p>
       <p className={cn('text-[11px] font-bold mt-0.5', color)}>{pct.toFixed(0)}%</p>
-    </div>
-  )
-}
-
-function RankedBar({ label, count, max }: { label: string; count: number; max: number }) {
-  const pct = max > 0 ? (count / max) * 100 : 0
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1">
-        <p className="text-[13px] font-medium text-gray-700 truncate pr-2">{label}</p>
-        <p className="text-[13px] font-bold text-gray-900 tabular-nums shrink-0">{count}</p>
-      </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-primary rounded-full transition-all"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
     </div>
   )
 }
