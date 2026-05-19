@@ -83,8 +83,9 @@ export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWAR
       setLoading(true)
       const { data } = await supabase
         .from('complaints')
-        .select('id, created_at, status, severity, category, resolved_at, csat_response, bus_number, driver_name, steward_name, bus_condition_subcategory, delay_subcategory, routes(name)')
+        .select('id, created_at, status, severity, category, resolved_at, csat_response, bus_number, driver_name, steward_name, driver_subcategory, steward_subcategory, bus_condition_subcategory, delay_subcategory, routes(name)')
         .order('created_at', { ascending: true })
+      console.log('[AnalyticsTab] raw complaint data sample:', data?.slice(0, 3))
       setComplaints((data as ComplaintRow[] | null) ?? [])
       setLoading(false)
     }
