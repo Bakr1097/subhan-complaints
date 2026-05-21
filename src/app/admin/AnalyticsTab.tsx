@@ -92,6 +92,7 @@ const TAG_LABELS: Record<string, string> = {
 
 export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWARD_HEAD' }) {
   const supabase = useMemo(() => createClient(), [])
+  const [view,       setView      ] = useState<'complaints' | 'ratings'>('complaints')
   const [timeRange,  setTimeRange ] = useState<TimeRange>('30d')
   const [complaints, setComplaints] = useState<ComplaintRow[] | null>(null)
   const [ratings,    setRatings   ] = useState<RatingRow[] | null>(null)
@@ -417,9 +418,27 @@ export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWAR
   return (
     <div className="space-y-5">
 
+      {/* Tab switcher */}
+      <div className="bg-gray-100 rounded-2xl p-1 grid grid-cols-2 gap-1">
+        {(['complaints', 'ratings'] as const).map(v => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setView(v)}
+            className={cn(
+              'h-11 rounded-xl text-[14px] font-semibold transition-all duration-150 capitalize',
+              view === v
+                ? 'bg-white text-primary shadow-sm'
+                : 'text-gray-500 hover:text-gray-700',
+            )}
+          >
+            {v === 'complaints' ? 'Complaints' : 'Ratings'}
+          </button>
+        ))}
+      </div>
+
       {/* Time range selector */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-gray-600">Analytics Overview</p>
+      <div className="flex items-center justify-end">
         <select
           value={timeRange}
           onChange={e => setTimeRange(e.target.value as TimeRange)}
@@ -432,9 +451,8 @@ export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWAR
         </select>
       </div>
 
-      {/* ── Complaints ─────────────────────────────────────── */}
-
-      <SectionDivider label="Complaints" />
+      {/* ── Complaints view ─────────────────────────────────── */}
+      {view === 'complaints' && <>
 
       {/* 1 — Total Complaints */}
       <Section title="Total Complaints" note="Fixed counts, not affected by date filter">
@@ -598,9 +616,10 @@ export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWAR
         </Section>
       )}
 
-      {/* ── Trip Ratings ────────────────────────────────────── */}
+      </>}
 
-      <SectionDivider label="Trip Ratings" />
+      {/* ── Ratings view ────────────────────────────────────── */}
+      {view === 'ratings' && <>
 
       {/* R1 — Average rating + total */}
       <Section title="Overview">
@@ -709,8 +728,7 @@ export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWAR
         )}
       </Section>
 
-      {/* ── Route Health ─────────────────────────────────────── */}
-
+      {/* Route Health */}
       <SectionDivider label="Route Health" />
 
       <Section title="Ratings + Complaints per Route" note="Combines both signals to show route quality at a glance">
@@ -722,6 +740,8 @@ export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWAR
           </div>
         )}
       </Section>
+
+      </>}
 
     </div>
   )
