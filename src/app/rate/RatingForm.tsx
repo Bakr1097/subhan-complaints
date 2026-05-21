@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils'
 
 // ── Types ──────────────────────────────────────────────────────
 type RouteOption = { id: string; name: string }
-type TimeSlot    = { id: string; time_label: string; sort_order: number }
 type Screen = 'form' | 'thanks-pos' | 'thanks-neg'
 
 // ── Constants ──────────────────────────────────────────────────
@@ -287,58 +286,6 @@ function RouteSelect({
   )
 }
 
-
-// ── Time slot select ───────────────────────────────────────────
-
-function TimeSlotSelect({
-  routeId, value, onChange, error,
-}: {
-  routeId: string
-  value: string
-  onChange: (v: string) => void
-  error?: string
-}) {
-  const [slots,   setSlots  ] = useState<TimeSlot[]>([])
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (!routeId) { setSlots([]); return }
-    setLoading(true)
-    const supabase = createClient()
-    supabase
-      .from('route_time_slots')
-      .select('id, time_label, sort_order')
-      .eq('route_id', routeId)
-      .order('sort_order')
-      .then(({ data }) => { setSlots(data ?? []); setLoading(false) })
-  }, [routeId])
-
-  return (
-    <div
-      className="relative h-[52px] rounded-xl border bg-card overflow-hidden"
-      style={{
-        borderColor: error ? 'hsl(var(--destructive))' : 'hsl(var(--border))',
-        boxShadow:   error ? '0 0 0 4px hsl(var(--destructive) / 0.12)' : 'none',
-      }}
-    >
-      <Clock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10" />
-      <select
-        value={value}
-        disabled={!routeId || loading}
-        onChange={e => onChange(e.target.value)}
-        className="w-full h-full pl-8 pr-8 bg-transparent text-[15px] text-foreground appearance-none outline-none focus:ring-4 focus:ring-primary/10 cursor-pointer disabled:opacity-50"
-      >
-        <option value="">
-          {!routeId ? 'Select a route first' : loading ? 'Loading…' : 'Select departure time'}
-        </option>
-        {slots.map(s => (
-          <option key={s.id} value={s.time_label}>{s.time_label}</option>
-        ))}
-      </select>
-      <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none rotate-90" />
-    </div>
-  )
-}
 
 // ── Trip details ───────────────────────────────────────────────
 
@@ -708,9 +655,9 @@ function StewardSetupScreen({
 
   function handleStart() {
     const e: Record<string, string> = {}
-    if (!routeId)      e.route = 'Please choose a route'
-    if (!bus.trim())   e.bus   = 'Please enter the bus number'
-    if (!departureTime) e.time = 'Please select a departure time'
+    if (!routeId)       e.route = 'Please choose a route'
+    if (!bus.trim())    e.bus   = 'Please enter the bus number'
+    if (!departureTime) e.time  = 'Please select a departure time'
     if (Object.keys(e).length) { setErrors(e); return }
     onStart(routeId, bus.trim(), departureTime)
   }
@@ -745,7 +692,7 @@ function StewardSetupScreen({
           <RouteSelect
             routes={routes}
             value={routeId}
-            onChange={v => { setRouteId(v); setDepartureTime(''); clearErr('route'); clearErr('time') }}
+            onChange={v => { setRouteId(v); clearErr('route') }}
             error={errors.route}
           />
           <FieldError msg={errors.route} />
@@ -768,15 +715,22 @@ function StewardSetupScreen({
           <FieldError msg={errors.bus} />
         </div>
 
-        {/* Departure time */}
+        {/* Departure time — same component as /submit complaint form */}
         <div className="mb-8">
           <FieldLabel required>Departure time</FieldLabel>
-          <TimeSlotSelect
-            routeId={routeId}
-            value={departureTime}
-            onChange={v => { setDepartureTime(v); clearErr('time') }}
-            error={errors.time}
-          />
+          <div className={cn(
+            'relative h-[52px] rounded-xl border bg-card overflow-hidden',
+            errors.time ? 'border-destructive' : 'border-input',
+          )}>
+            <Clock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <input
+              dir="ltr"
+              type="time"
+              value={departureTime}
+              onChange={e => { setDepartureTime(e.target.value); clearErr('time') }}
+              className="w-full h-full pl-8 pr-2 bg-transparent text-base appearance-none focus:outline-none focus:ring-4 focus:ring-primary/10"
+            />
+          </div>
           <FieldError msg={errors.time} />
         </div>
 
