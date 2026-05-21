@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 
 // ── Types ──────────────────────────────────────────────────────
 type RouteOption = { id: string; name: string }
+type TimeSlot    = { id: string; time_label: string; sort_order: number }
 type Screen = 'form' | 'thanks-pos' | 'thanks-neg'
 
 // ── Constants ──────────────────────────────────────────────────
@@ -286,6 +287,58 @@ function RouteSelect({
   )
 }
 
+
+// ── Time slot select ───────────────────────────────────────────
+
+function TimeSlotSelect({
+  routeId, value, onChange, error,
+}: {
+  routeId: string
+  value: string
+  onChange: (v: string) => void
+  error?: string
+}) {
+  const [slots,   setSlots  ] = useState<TimeSlot[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!routeId) { setSlots([]); return }
+    setLoading(true)
+    const supabase = createClient()
+    supabase
+      .from('route_time_slots')
+      .select('id, time_label, sort_order')
+      .eq('route_id', routeId)
+      .order('sort_order')
+      .then(({ data }) => { setSlots(data ?? []); setLoading(false) })
+  }, [routeId])
+
+  return (
+    <div
+      className="relative h-[52px] rounded-xl border bg-card overflow-hidden"
+      style={{
+        borderColor: error ? 'hsl(var(--destructive))' : 'hsl(var(--border))',
+        boxShadow:   error ? '0 0 0 4px hsl(var(--destructive) / 0.12)' : 'none',
+      }}
+    >
+      <Clock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10" />
+      <select
+        value={value}
+        disabled={!routeId || loading}
+        onChange={e => onChange(e.target.value)}
+        className="w-full h-full pl-8 pr-8 bg-transparent text-[15px] text-foreground appearance-none outline-none focus:ring-4 focus:ring-primary/10 cursor-pointer disabled:opacity-50"
+      >
+        <option value="">
+          {!routeId ? 'Select a route first' : loading ? 'Loading…' : 'Select departure time'}
+        </option>
+        {slots.map(s => (
+          <option key={s.id} value={s.time_label}>{s.time_label}</option>
+        ))}
+      </select>
+      <ChevronRight size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none rotate-90" />
+    </div>
+  )
+}
 
 // ── Trip details ───────────────────────────────────────────────
 
@@ -641,19 +694,25 @@ function StewardSetupScreen({
   routes, onStart, onExit,
 }: {
   routes: RouteOption[]
-  onStart: (routeId: string, bus: string) => void
+  onStart: (routeId: string, bus: string, time: string) => void
   onExit: () => void
 }) {
-  const [routeId, setRouteId]   = useState('')
-  const [bus, setBus]           = useState('')
-  const [errors, setErrors]     = useState<Record<string, string>>({})
+  const [routeId,       setRouteId      ] = useState('')
+  const [bus,           setBus          ] = useState('')
+  const [departureTime, setDepartureTime] = useState('')
+  const [errors,        setErrors       ] = useState<Record<string, string>>({})
+
+  function clearErr(key: string) {
+    setErrors(e => { const n = { ...e }; delete n[key]; return n })
+  }
 
   function handleStart() {
     const e: Record<string, string> = {}
-    if (!routeId) e.route = 'Please choose a route'
-    if (!bus.trim()) e.bus = 'Please enter the bus number'
+    if (!routeId)      e.route = 'Please choose a route'
+    if (!bus.trim())   e.bus   = 'Please enter the bus number'
+    if (!departureTime) e.time = 'Please select a departure time'
     if (Object.keys(e).length) { setErrors(e); return }
-    onStart(routeId, bus.trim())
+    onStart(routeId, bus.trim(), departureTime)
   }
 
   return (
@@ -677,7 +736,7 @@ function StewardSetupScreen({
       <div className="px-5 pt-7 pb-4">
         <h1 className="text-[24px] font-semibold tracking-[-0.02em] mb-1">Set up this trip</h1>
         <p className="text-[13.5px] text-muted-foreground mb-7">
-          Route and bus lock in for the whole session. Tap &ldquo;Start&rdquo; when ready.
+          Route, bus, and time lock in for the whole session. Tap &ldquo;Start&rdquo; when ready.
         </p>
 
         {/* Route */}
@@ -686,14 +745,14 @@ function StewardSetupScreen({
           <RouteSelect
             routes={routes}
             value={routeId}
-            onChange={v => { setRouteId(v); setErrors(e => { const n = { ...e }; delete n.route; return n }) }}
+            onChange={v => { setRouteId(v); setDepartureTime(''); clearErr('route'); clearErr('time') }}
             error={errors.route}
           />
           <FieldError msg={errors.route} />
         </div>
 
         {/* Bus number */}
-        <div className="mb-8">
+        <div className="mb-4">
           <FieldLabel required>Bus number</FieldLabel>
           <div className="relative">
             <Hash size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
@@ -701,12 +760,24 @@ function StewardSetupScreen({
               type="text"
               value={bus}
               placeholder="47"
-              onChange={e => { setBus(e.target.value); setErrors(er => { const n = { ...er }; delete n.bus; return n }) }}
+              onChange={e => { setBus(e.target.value); clearErr('bus') }}
               className="w-full h-[52px] pl-10 pr-4 rounded-lg border bg-card text-[16px] text-foreground outline-none focus:ring-4 focus:ring-primary/10 transition-all"
               style={{ borderColor: errors.bus ? 'hsl(var(--destructive))' : 'hsl(var(--border))' }}
             />
           </div>
           <FieldError msg={errors.bus} />
+        </div>
+
+        {/* Departure time */}
+        <div className="mb-8">
+          <FieldLabel required>Departure time</FieldLabel>
+          <TimeSlotSelect
+            routeId={routeId}
+            value={departureTime}
+            onChange={v => { setDepartureTime(v); clearErr('time') }}
+            error={errors.time}
+          />
+          <FieldError msg={errors.time} />
         </div>
 
         <button
@@ -726,9 +797,9 @@ function StewardSetupScreen({
 // ── Steward: active-session banner ────────────────────────────
 
 function StewardBanner({
-  count, routeName, busNumber, onNewTrip, onExit,
+  count, routeName, busNumber, departureTime, onNewTrip, onExit,
 }: {
-  count: number; routeName: string; busNumber: string
+  count: number; routeName: string; busNumber: string; departureTime: string
   onNewTrip: () => void; onExit: () => void
 }) {
   return (
@@ -743,8 +814,8 @@ function StewardBanner({
         </span>
       </div>
       <div className="flex items-center justify-between mt-1.5">
-        <p className="text-[12px] text-primary-foreground/75 truncate max-w-[55%]">
-          {routeName} · Bus #{busNumber}
+        <p className="text-[12px] text-primary-foreground/75 truncate max-w-[60%]">
+          {routeName} · #{busNumber}{departureTime ? ` · ${departureTime}` : ''}
         </p>
         <div className="flex items-center gap-3">
           <button
@@ -1018,6 +1089,7 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
   const [stewardCount,  setStewardCount ] = useState(0)
   const [stewardRoute,  setStewardRoute ] = useState('')
   const [stewardBus,    setStewardBus   ] = useState('')
+  const [stewardTime,   setStewardTime  ] = useState('')
 
   useEffect(() => {
     if (rating > 0) revealedRef.current = true
@@ -1028,13 +1100,16 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
     if (sessionStorage.getItem('steward_active') !== '1') return
     const r = sessionStorage.getItem('steward_route') ?? ''
     const b = sessionStorage.getItem('steward_bus')   ?? ''
+    const t = sessionStorage.getItem('steward_time')  ?? ''
     const c = parseInt(sessionStorage.getItem('steward_count') ?? '0', 10)
     setStewardMode(true)
-    if (r && b) {
+    if (r && b && t) {
       setStewardRoute(r)
       setStewardBus(b)
+      setStewardTime(t)
       setRouteId(r)
       setBusNumber(b)
+      setDepartureTime(t)
       setStewardCount(c)
       setStewardSetup(false)
     } else {
@@ -1067,16 +1142,19 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
     setShowPinModal(false)
   }
 
-  function handleStewardStart(rId: string, bus: string) {
+  function handleStewardStart(rId: string, bus: string, time: string) {
     setStewardRoute(rId)
     setStewardBus(bus)
+    setStewardTime(time)
     setRouteId(rId)
     setBusNumber(bus)
+    setDepartureTime(time)
     setBusUnknown(false)
     setStewardCount(0)
     setStewardSetup(false)
     sessionStorage.setItem('steward_route', rId)
     sessionStorage.setItem('steward_bus', bus)
+    sessionStorage.setItem('steward_time', time)
     sessionStorage.setItem('steward_count', '0')
   }
 
@@ -1085,14 +1163,17 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
     setStewardCount(0)
     setStewardRoute('')
     setStewardBus('')
+    setStewardTime('')
     setRouteId('')
     setBusNumber('')
+    setDepartureTime('')
     setRating(0)
     setTags([])
     setFeedbackText('')
     setErrors({})
     sessionStorage.removeItem('steward_route')
     sessionStorage.removeItem('steward_bus')
+    sessionStorage.removeItem('steward_time')
     sessionStorage.setItem('steward_count', '0')
   }
 
@@ -1102,6 +1183,7 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
     setStewardCount(0)
     setStewardRoute('')
     setStewardBus('')
+    setStewardTime('')
     setRating(0)
     setTags([])
     setFeedbackText('')
@@ -1109,6 +1191,7 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
     sessionStorage.removeItem('steward_active')
     sessionStorage.removeItem('steward_route')
     sessionStorage.removeItem('steward_bus')
+    sessionStorage.removeItem('steward_time')
     sessionStorage.removeItem('steward_count')
   }
 
@@ -1149,7 +1232,7 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
         p_rating:         rating,
         p_route_id:       routeId,
         p_travel_date:    travelDate || todayStr(),
-        p_departure_time: departureTime || null,
+        p_departure_time: stewardMode ? (stewardTime || null) : (departureTime || null),
         p_bus_number:     busUnknown ? null : busNumber.trim(),
         p_bus_unknown:    busUnknown,
         p_positive_tags:  rating >= 3 ? tags : [],
@@ -1199,6 +1282,7 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
           count={stewardCount}
           routeName={lockedRoute?.name ?? ''}
           busNumber={stewardBus}
+          departureTime={stewardTime}
           onNewTrip={handleStewardNewTrip}
           onExit={handleExitSteward}
         />
