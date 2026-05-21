@@ -24,7 +24,7 @@ export default function QRCodePage({ qrDataUrl, submitUrl }: Props) {
         <div id="no-print" className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold text-gray-900">QR Code</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Public complaint form</p>
+            <p className="text-sm text-gray-500 mt-0.5">Rate your trip or submit a complaint</p>
           </div>
           <a href="/admin" className="text-sm text-gray-500 hover:text-gray-700 underline">
             ← Back to Admin
@@ -41,16 +41,16 @@ export default function QRCodePage({ qrDataUrl, submitUrl }: Props) {
                 Subhan Travels
               </p>
               <h2 className="text-2xl font-bold text-gray-900 leading-tight">
-                Submit a Complaint
+                Rate Your Trip
               </h2>
-              <p className="text-sm text-gray-500 mt-1">Scan to report a complaint</p>
+              <p className="text-sm text-gray-500 mt-1">Scan to rate or report a complaint</p>
             </div>
 
             {/* QR code */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={qrDataUrl}
-              alt="QR code linking to the public complaint form"
+              alt="QR code linking to the passenger feedback page"
               className="w-64 h-64 rounded-xl"
             />
 
