@@ -50,6 +50,17 @@ type ConfirmationData = {
   busNumber:       string
 }
 
+// ── City code mapping ────────────────────────────────────────
+// Add new cities here when new routes are added
+const CITY_CODES: Record<string, string> = {
+  Faisalabad: 'FSD',
+  Lahore:     'LHR',
+  Karachi:    'KHI',
+  Islamabad:  'ISB',
+  Multan:     'MUL',
+  Peshawar:   'PEW',
+}
+
 // ── Translations ─────────────────────────────────────────────
 
 const TRANSLATIONS = {
@@ -562,11 +573,11 @@ function SeverityBar({ severity, label, routing }: { severity: 'HIGH' | 'MEDIUM'
 
 function parseRouteName(name: string) {
   const sep   = name.match(/\s*[-–→]\s*/)
-  if (!sep) return { fromCode: name.slice(0, 3).toUpperCase(), from: name, toCode: '---', to: '' }
+  if (!sep) return { fromCode: CITY_CODES[name] ?? name.slice(0, 3).toUpperCase(), from: name, toCode: '---', to: '' }
   const parts = name.split(sep[0])
   const from  = (parts[0] ?? '').trim()
   const to    = (parts[1] ?? '').trim()
-  const code  = (s: string) => s.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || '???'
+  const code  = (s: string) => CITY_CODES[s] ?? (s.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || '???')
   return { fromCode: code(from), from, toCode: code(to), to }
 }
 

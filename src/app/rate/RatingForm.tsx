@@ -16,6 +16,17 @@ import { cn } from '@/lib/utils'
 type RouteOption = { id: string; name: string }
 type Screen = 'form' | 'thanks-pos' | 'thanks-neg'
 
+// ── City code mapping ──────────────────────────────────────────
+// Add new cities here when new routes are added
+const CITY_CODES: Record<string, string> = {
+  Faisalabad: 'FSD',
+  Lahore:     'LHR',
+  Karachi:    'KHI',
+  Islamabad:  'ISB',
+  Multan:     'MUL',
+  Peshawar:   'PEW',
+}
+
 // ── Constants ──────────────────────────────────────────────────
 const SMILEYS = [
   { value: 1, label: 'Bad',       urdu: 'Bura',      Icon: Frown },
@@ -45,11 +56,11 @@ function formatDateLabel(s: string) {
 
 function parseRouteName(name: string) {
   const sep = name.match(/\s*[-–→]\s*/)
-  if (!sep) return { from: name, to: '', fromCode: name.slice(0, 3).toUpperCase(), toCode: '---' }
+  if (!sep) return { from: name, to: '', fromCode: CITY_CODES[name] ?? name.slice(0, 3).toUpperCase(), toCode: '---' }
   const parts = name.split(sep[0])
   const from  = (parts[0] ?? '').trim()
   const to    = (parts[1] ?? '').trim()
-  const code  = (s: string) => s.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || '???'
+  const code  = (s: string) => CITY_CODES[s] ?? (s.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || '???')
   return { from, to, fromCode: code(from), toCode: code(to) }
 }
 
