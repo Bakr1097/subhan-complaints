@@ -7,6 +7,7 @@ import {
   Sparkles, UserCheck, Clock, Armchair, UtensilsCrossed, Wind,
   Shield, ChevronRight, Hash, AlertTriangle, Star,
   Bus, Check, Share2, Route,
+  Lock, RotateCcw, LogOut, Users,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
@@ -501,9 +502,10 @@ function ComplaintEscapeCard({ onOpen }: { onOpen: () => void }) {
 // ── Submit dock ────────────────────────────────────────────────
 
 function SubmitDock({
-  rating, submitting, submitError, onSubmit,
+  rating, submitting, submitError, onSubmit, captionOverride,
 }: {
   rating: number; submitting: boolean; submitError: string; onSubmit: () => void
+  captionOverride?: string
 }) {
   const enabled = rating > 0
   const bg      = enabled ? reactionBg(rating) : '#D4CCB8'
@@ -548,8 +550,221 @@ function SubmitDock({
       {submitError ? (
         <p className="text-center mt-2 text-[11px] text-destructive">{submitError}</p>
       ) : (
-        <p className="text-center mt-2 text-[11px] text-[#9AA59C] tracking-[0.02em]">{caption}</p>
+        <p className="text-center mt-2 text-[11px] text-[#9AA59C] tracking-[0.02em]">{captionOverride ?? caption}</p>
       )}
+    </div>
+  )
+}
+
+// ── Steward: PIN modal ─────────────────────────────────────────
+
+function PinModal({
+  onSuccess, onCancel,
+}: {
+  onSuccess: () => void; onCancel: () => void
+}) {
+  const [pin, setPin]       = useState('')
+  const [error, setError]   = useState('')
+  const [shake, setShake]   = useState(false)
+
+  function attempt() {
+    const correct = process.env.NEXT_PUBLIC_STEWARD_PIN ?? ''
+    if (pin === correct) {
+      onSuccess()
+    } else {
+      setError('Wrong PIN — try again')
+      setPin('')
+      setShake(true)
+      setTimeout(() => setShake(false), 420)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ background: 'rgba(15,20,18,0.55)', backdropFilter: 'blur(4px)' }}>
+      <div className="w-full max-w-sm bg-card rounded-[22px] p-6 shadow-2xl">
+        <div className="flex flex-col items-center mb-5">
+          <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
+            <Lock size={22} />
+          </div>
+          <h2 className="text-[18px] font-semibold tracking-[-0.005em]">Steward Mode</h2>
+          <p className="text-[13px] text-muted-foreground mt-1 text-center">Enter the 4-digit PIN to continue</p>
+        </div>
+
+        <div
+          className="relative h-[52px] rounded-xl border bg-background overflow-hidden mb-3"
+          style={{ animation: shake ? 'shakeNudge 380ms cubic-bezier(.36,.07,.19,.97) both' : undefined }}
+        >
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={4}
+            value={pin}
+            autoFocus
+            onChange={e => { setPin(e.target.value.replace(/\D/g, '')); setError('') }}
+            onKeyDown={e => e.key === 'Enter' && pin.length === 4 && attempt()}
+            placeholder="••••"
+            className="w-full h-full px-4 text-center text-[22px] font-mono-brand tracking-[0.5em] bg-transparent outline-none focus:ring-4 focus:ring-primary/10 border-input"
+          />
+        </div>
+
+        {error && (
+          <p className="text-[12px] text-destructive text-center mb-3" style={{ animation: 'errorFadeIn 220ms ease-out' }}>
+            {error}
+          </p>
+        )}
+
+        <div className="grid grid-cols-2 gap-2.5 mt-1">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="h-11 rounded-xl border border-border bg-card text-[14px] font-medium text-foreground cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={pin.length !== 4}
+            onClick={attempt}
+            className="h-11 rounded-xl bg-primary text-primary-foreground text-[14px] font-semibold border-none cursor-pointer disabled:opacity-40"
+          >
+            Enter
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Steward: setup screen ──────────────────────────────────────
+
+function StewardSetupScreen({
+  routes, onStart, onExit,
+}: {
+  routes: RouteOption[]
+  onStart: (routeId: string, bus: string) => void
+  onExit: () => void
+}) {
+  const [routeId, setRouteId]   = useState('')
+  const [bus, setBus]           = useState('')
+  const [errors, setErrors]     = useState<Record<string, string>>({})
+
+  function handleStart() {
+    const e: Record<string, string> = {}
+    if (!routeId) e.route = 'Please choose a route'
+    if (!bus.trim()) e.bus = 'Please enter the bus number'
+    if (Object.keys(e).length) { setErrors(e); return }
+    onStart(routeId, bus.trim())
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header strip */}
+      <div className="bg-primary text-primary-foreground flex items-center justify-between px-5 py-3">
+        <div className="flex items-center gap-2 text-[13px] font-semibold">
+          <Users size={15} />
+          <span>Steward Mode</span>
+        </div>
+        <button
+          type="button"
+          onClick={onExit}
+          className="flex items-center gap-1.5 text-[12px] font-medium text-primary-foreground/70 hover:text-primary-foreground bg-transparent border-none cursor-pointer"
+        >
+          <LogOut size={13} />
+          Exit
+        </button>
+      </div>
+
+      <div className="px-5 pt-7 pb-4">
+        <h1 className="text-[24px] font-semibold tracking-[-0.02em] mb-1">Set up this trip</h1>
+        <p className="text-[13.5px] text-muted-foreground mb-7">
+          Route and bus lock in for the whole session. Tap &ldquo;Start&rdquo; when ready.
+        </p>
+
+        {/* Route */}
+        <div className="mb-4">
+          <FieldLabel required>Route</FieldLabel>
+          <RouteSelect
+            routes={routes}
+            value={routeId}
+            onChange={v => { setRouteId(v); setErrors(e => { const n = { ...e }; delete n.route; return n }) }}
+            error={errors.route}
+          />
+          <FieldError msg={errors.route} />
+        </div>
+
+        {/* Bus number */}
+        <div className="mb-8">
+          <FieldLabel required>Bus number</FieldLabel>
+          <div className="relative">
+            <Hash size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={bus}
+              placeholder="47"
+              onChange={e => { setBus(e.target.value); setErrors(er => { const n = { ...er }; delete n.bus; return n }) }}
+              className="w-full h-[52px] pl-10 pr-4 rounded-lg border bg-card text-[16px] text-foreground outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+              style={{ borderColor: errors.bus ? 'hsl(var(--destructive))' : 'hsl(var(--border))' }}
+            />
+          </div>
+          <FieldError msg={errors.bus} />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleStart}
+          className="w-full h-14 rounded-[14px] bg-primary text-primary-foreground text-[16px] font-semibold border-none cursor-pointer flex items-center justify-center gap-2"
+          style={{ boxShadow: '0 8px 20px rgba(15,93,78,0.25)' }}
+        >
+          <Users size={18} />
+          Start collecting ratings
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Steward: active-session banner ────────────────────────────
+
+function StewardBanner({
+  count, routeName, busNumber, onNewTrip, onExit,
+}: {
+  count: number; routeName: string; busNumber: string
+  onNewTrip: () => void; onExit: () => void
+}) {
+  return (
+    <div className="bg-primary text-primary-foreground px-4 pt-3 pb-2.5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Users size={14} className="opacity-80 shrink-0" />
+          <span className="text-[12px] font-semibold tracking-wide uppercase opacity-90">Steward Mode</span>
+        </div>
+        <span className="font-mono-brand text-[11px] font-semibold bg-white/15 px-2 py-0.5 rounded-full">
+          {count} collected
+        </span>
+      </div>
+      <div className="flex items-center justify-between mt-1.5">
+        <p className="text-[12px] text-primary-foreground/75 truncate max-w-[55%]">
+          {routeName} · Bus #{busNumber}
+        </p>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onNewTrip}
+            className="flex items-center gap-1 text-[11.5px] font-medium text-primary-foreground/80 hover:text-primary-foreground bg-transparent border-none cursor-pointer"
+          >
+            <RotateCcw size={11} />
+            New Trip
+          </button>
+          <button
+            type="button"
+            onClick={onExit}
+            className="flex items-center gap-1 text-[11.5px] font-medium text-primary-foreground/80 hover:text-primary-foreground bg-transparent border-none cursor-pointer"
+          >
+            <LogOut size={11} />
+            Exit
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -794,12 +1009,38 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
   const [submitting,    setSubmitting   ] = useState(false)
   const [submitError,   setSubmitError  ] = useState('')
   const [tripExpanded,  setTripExpanded ] = useState(!hasQrParams)
-  // Track whether the form section has been revealed at least once (for animation)
   const revealedRef = useRef(false)
+
+  // ── Steward mode state ────────────────────────────────────────
+  const [stewardMode,   setStewardMode  ] = useState(false)
+  const [showPinModal,  setShowPinModal ] = useState(false)
+  const [stewardSetup,  setStewardSetup ] = useState(true)
+  const [stewardCount,  setStewardCount ] = useState(0)
+  const [stewardRoute,  setStewardRoute ] = useState('')
+  const [stewardBus,    setStewardBus   ] = useState('')
 
   useEffect(() => {
     if (rating > 0) revealedRef.current = true
   }, [rating])
+
+  // Restore steward session from sessionStorage on mount
+  useEffect(() => {
+    if (sessionStorage.getItem('steward_active') !== '1') return
+    const r = sessionStorage.getItem('steward_route') ?? ''
+    const b = sessionStorage.getItem('steward_bus')   ?? ''
+    const c = parseInt(sessionStorage.getItem('steward_count') ?? '0', 10)
+    setStewardMode(true)
+    if (r && b) {
+      setStewardRoute(r)
+      setStewardBus(b)
+      setRouteId(r)
+      setBusNumber(b)
+      setStewardCount(c)
+      setStewardSetup(false)
+    } else {
+      setStewardSetup(true)
+    }
+  }, [])
 
   useEffect(() => {
     if (errors.route || errors.bus) setTripExpanded(true)
@@ -817,6 +1058,59 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
 
   const isPositive = rating >= 3
   const isNegative = rating > 0 && rating <= 2
+
+  function handlePinSuccess() {
+    setStewardMode(true)
+    setStewardSetup(true)
+    setStewardCount(0)
+    sessionStorage.setItem('steward_active', '1')
+    setShowPinModal(false)
+  }
+
+  function handleStewardStart(rId: string, bus: string) {
+    setStewardRoute(rId)
+    setStewardBus(bus)
+    setRouteId(rId)
+    setBusNumber(bus)
+    setBusUnknown(false)
+    setStewardCount(0)
+    setStewardSetup(false)
+    sessionStorage.setItem('steward_route', rId)
+    sessionStorage.setItem('steward_bus', bus)
+    sessionStorage.setItem('steward_count', '0')
+  }
+
+  function handleStewardNewTrip() {
+    setStewardSetup(true)
+    setStewardCount(0)
+    setStewardRoute('')
+    setStewardBus('')
+    setRouteId('')
+    setBusNumber('')
+    setRating(0)
+    setTags([])
+    setFeedbackText('')
+    setErrors({})
+    sessionStorage.removeItem('steward_route')
+    sessionStorage.removeItem('steward_bus')
+    sessionStorage.setItem('steward_count', '0')
+  }
+
+  function handleExitSteward() {
+    setStewardMode(false)
+    setStewardSetup(true)
+    setStewardCount(0)
+    setStewardRoute('')
+    setStewardBus('')
+    setRating(0)
+    setTags([])
+    setFeedbackText('')
+    setErrors({})
+    sessionStorage.removeItem('steward_active')
+    sessionStorage.removeItem('steward_route')
+    sessionStorage.removeItem('steward_bus')
+    sessionStorage.removeItem('steward_count')
+  }
 
   function buildComplaintUrl() {
     const qs = new URLSearchParams()
@@ -866,7 +1160,18 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
         p_query_string:   typeof window !== 'undefined' ? window.location.search : '',
       })
       if (error) throw error
-      setScreen(rating >= 3 ? 'thanks-pos' : 'thanks-neg')
+      if (stewardMode) {
+        // Instant reset — no thank-you screen, route/bus stay locked
+        const next = stewardCount + 1
+        setStewardCount(next)
+        sessionStorage.setItem('steward_count', String(next))
+        setRating(0)
+        setTags([])
+        setFeedbackText('')
+        setErrors({})
+      } else {
+        setScreen(rating >= 3 ? 'thanks-pos' : 'thanks-neg')
+      }
     } catch (err) {
       console.error(err)
       setSubmitError('Something went wrong. Please try again.')
@@ -875,7 +1180,90 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
     }
   }
 
-  // Thank-you screens
+  // ── Steward mode screens ──────────────────────────────────────
+  if (stewardMode && stewardSetup) {
+    return (
+      <StewardSetupScreen
+        routes={routes}
+        onStart={handleStewardStart}
+        onExit={handleExitSteward}
+      />
+    )
+  }
+
+  if (stewardMode && !stewardSetup) {
+    const lockedRoute = routes.find(r => r.id === stewardRoute)
+    return (
+      <div className="min-h-screen bg-background relative pb-36">
+        <StewardBanner
+          count={stewardCount}
+          routeName={lockedRoute?.name ?? ''}
+          busNumber={stewardBus}
+          onNewTrip={handleStewardNewTrip}
+          onExit={handleExitSteward}
+        />
+
+        <div className="px-5 pt-5 pb-2">
+          <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.02em] text-foreground mb-1">
+            How was the trip?
+          </h1>
+          <p className="text-[13.5px] text-muted-foreground">Hand the phone to the passenger</p>
+        </div>
+
+        <div className="mt-2">
+          <SmileySelector
+            rating={rating}
+            onChange={setRating}
+            shake={shakeSmiley}
+            error={errors.rating}
+          />
+        </div>
+
+        {rating > 0 && (
+          <div style={{ animation: 'formRevealIn 280ms ease-out' }}>
+            {isPositive && (
+              <div className="px-5 pt-5 pb-1">
+                <SectionHeader title="What was great?" caption="Kya acha laga?" optional />
+                <PositiveTags
+                  value={tags}
+                  onToggle={v => setTags(cur => cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v])}
+                />
+              </div>
+            )}
+            {isNegative && (
+              <div className="px-5 pt-5 pb-1">
+                <SectionHeader title="Sorry to hear that" caption="Bataiye kya hua" />
+                <div>
+                  <FieldLabel optional>What went wrong?</FieldLabel>
+                  <textarea
+                    value={feedbackText}
+                    onChange={e => setFeedbackText(e.target.value.slice(0, 280))}
+                    rows={3}
+                    placeholder="A line or two — what went wrong?"
+                    className="w-full rounded-lg border border-border bg-card px-3.5 py-3 text-[14.5px] text-foreground resize-none leading-relaxed outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
+                  />
+                  <p className="text-[11.5px] text-[#9AA59C] mt-1.5 flex justify-between">
+                    <span>We&apos;ll use it to coach the team.</span>
+                    <span>{feedbackText.length}/280</span>
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <SubmitDock
+          rating={rating}
+          submitting={submitting}
+          submitError={submitError}
+          onSubmit={handleSubmit}
+          captionOverride={rating > 0 ? 'Submitting saves and resets instantly' : 'Tap a face to start'}
+        />
+      </div>
+    )
+  }
+
+  // ── Passenger thank-you screens ───────────────────────────────
   if (screen === 'thanks-pos') {
     return (
       <ThanksPositive
@@ -1033,6 +1421,20 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
         </div>
       )}
 
+      {/* Steward mode entry — subtle, below the form */}
+      {rating === 0 && (
+        <div className="px-5 pt-8 pb-4 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setShowPinModal(true)}
+            className="flex items-center gap-1.5 text-[12px] text-[#9AA59C] bg-transparent border-none cursor-pointer underline underline-offset-4 decoration-[#C9C0A8]"
+          >
+            <Users size={12} />
+            Steward Mode
+          </button>
+        </div>
+      )}
+
       {/* Submit dock */}
       <SubmitDock
         rating={rating}
@@ -1040,6 +1442,14 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
         submitError={submitError}
         onSubmit={handleSubmit}
       />
+
+      {/* PIN modal */}
+      {showPinModal && (
+        <PinModal
+          onSuccess={handlePinSuccess}
+          onCancel={() => { setShowPinModal(false) }}
+        />
+      )}
     </div>
   )
 }
