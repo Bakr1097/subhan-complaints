@@ -32,8 +32,6 @@ const POSITIVE_TAGS = [
   { value: 'DRIVING', label: 'Smooth driving',   Icon: Wind            },
 ]
 
-const DEPARTURE_TIMES = ['6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM', '11 PM']
-
 // ── Helpers ────────────────────────────────────────────────────
 function todayStr() {
   return new Date().toISOString().split('T')[0]
@@ -287,51 +285,6 @@ function RouteSelect({
   )
 }
 
-// ── Departure time select ──────────────────────────────────────
-
-function TimeSelect({
-  value, onChange,
-}: {
-  value: string; onChange: (v: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-full h-[52px] px-4 rounded-lg border border-border bg-card flex items-center gap-3 cursor-pointer text-left transition-all duration-150"
-        style={{
-          borderColor: open ? 'hsl(var(--primary))' : 'hsl(var(--border))',
-          boxShadow: open ? '0 0 0 4px hsl(var(--primary) / 0.10)' : 'none',
-        }}
-      >
-        <Clock size={16} className="text-muted-foreground shrink-0" />
-        <span className={cn('flex-1 text-[15px]', value ? 'font-mono-brand text-[14px] text-foreground' : 'text-muted-foreground')}>
-          {value || 'If you remember'}
-        </span>
-      </button>
-      {open && (
-        <div className="absolute top-[calc(100%+6px)] left-0 right-0 bg-card border border-border rounded-lg overflow-hidden z-10 shadow-xl">
-          {DEPARTURE_TIMES.map((t, i) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => { onChange(t); setOpen(false) }}
-              className={cn(
-                'w-full text-left px-4 py-3 font-mono-brand text-[13px] text-foreground cursor-pointer hover:bg-muted transition-colors',
-                i > 0 && 'border-t border-border',
-                value === t && 'bg-muted font-semibold',
-              )}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
 
 // ── Trip details ───────────────────────────────────────────────
 
@@ -391,18 +344,14 @@ function TripDetailsExpanded({
       {/* Travel date */}
       <div>
         <FieldLabel required>Travel date</FieldLabel>
-        <div className="relative">
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-          </span>
+        <div className="h-[52px] rounded-xl border border-input bg-card overflow-hidden">
           <input
+            dir="ltr"
             type="date"
             value={travelDate}
             max={todayStr()}
             onChange={e => onDateChange(e.target.value)}
-            className="w-full h-[52px] pl-10 pr-4 rounded-lg border border-border bg-card font-mono-brand text-[14px] text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
+            className="w-full h-full px-3 bg-transparent text-base appearance-none focus:outline-none focus:ring-4 focus:ring-primary/10"
           />
         </div>
       </div>
@@ -410,7 +359,16 @@ function TripDetailsExpanded({
       {/* Departure time */}
       <div>
         <FieldLabel optional>Departure time</FieldLabel>
-        <TimeSelect value={departureTime} onChange={onTimeChange} />
+        <div className="relative h-[52px] rounded-xl border border-input bg-card overflow-hidden">
+          <Clock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <input
+            dir="ltr"
+            type="time"
+            value={departureTime}
+            onChange={e => onTimeChange(e.target.value)}
+            className="w-full h-full pl-8 pr-2 bg-transparent text-base appearance-none focus:outline-none focus:ring-4 focus:ring-primary/10"
+          />
+        </div>
         <FieldHint>If you remember — helps us identify your trip</FieldHint>
       </div>
 
