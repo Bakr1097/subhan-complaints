@@ -48,6 +48,12 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        reaction: {
+          bad:   { DEFAULT: "hsl(var(--reaction-bad))",   foreground: "hsl(var(--reaction-bad-fg))"   },
+          okay:  { DEFAULT: "hsl(var(--reaction-okay))",  foreground: "hsl(var(--reaction-okay-fg))"  },
+          good:  { DEFAULT: "hsl(var(--reaction-good))",  foreground: "hsl(var(--reaction-good-fg))"  },
+          great: { DEFAULT: "hsl(var(--reaction-great))", foreground: "hsl(var(--reaction-great-fg))" },
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -67,3 +67,47 @@
     font-family: var(--font-geist-mono), monospace;
   }
 }
+
+/* ── Reaction tint tokens (trip rating form) ─────────────────── */
+:root {
+  --reaction-bad:          5 60% 44%;   /* #B43D2E — alias of --destructive */
+  --reaction-bad-fg:      24 80% 96%;   /* #FFF1EC                          */
+  --reaction-okay:        28 51% 47%;   /* #B47339 — accent amber           */
+  --reaction-okay-fg:     33 100% 96%;  /* #FFF6EB                          */
+  --reaction-good:       158 42% 40%;   /* #3E8E73 — new softer emerald     */
+  --reaction-good-fg:    158 50% 96%;   /* #F4FBF8                          */
+  --reaction-great:      167 71% 21%;   /* #0F5D4E — alias of --primary     */
+  --reaction-great-fg:    42 53% 95%;   /* #F7F3E9 — alias of primary-fg    */
+}
+
+/* ── Rating-form animation keyframes ─────────────────────────── */
+@keyframes smileyPop {
+  0%   { transform: scale(1) rotate(0deg); }
+  35%  { transform: scale(1.18) rotate(-4deg); }
+  70%  { transform: scale(0.96) rotate(2deg); }
+  100% { transform: scale(1.04) rotate(0deg); }
+}
+@keyframes formRevealIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shakeNudge {
+  0%, 100% { transform: translateX(0); }
+  15%      { transform: translateX(-6px); }
+  35%      { transform: translateX(5px); }
+  55%      { transform: translateX(-4px); }
+  75%      { transform: translateX(3px); }
+}
+@keyframes errorFadeIn {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes sparkleFloat {
+  0%   { transform: translate(0, 0) scale(0.9); opacity: 0.18; }
+  50%  { transform: translate(2px, -6px) scale(1); opacity: 0.45; }
+  100% { transform: translate(0, 0) scale(0.9); opacity: 0.18; }
+}
+@keyframes thanksFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
