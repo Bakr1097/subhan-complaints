@@ -1,0 +1,38 @@
+Fetch this design file, read its readme, and implement the relevant aspects of the design. https://api.anthropic.com/v1/design/h/mtY-bKPWsIZu6aDCm87m3w?open_file=Rating+form.html
+Implement: Rating form.html
+
+Additional requirements on top of the design:
+
+TRAVEL DATE
+- Automatically defaults to TODAY's date, captured silently
+- Do NOT show an editable date field — passenger never enters or taps the date
+- Optionally show small read-only label "Today: [date]" but no input field
+
+MANDATORY FIELDS
+- Smiley rating — required, cannot submit without selecting
+- Route — required dropdown, active routes only from Supabase
+- Bus number — required, but add "I don't remember" as a valid selectable option
+
+OPTIONAL FIELDS
+- Departure time — optional, helper text "If you remember"
+- Passenger name — optional
+- Passenger phone — optional
+- Tags and comment — optional
+
+CONDITIONAL FLOW
+- Positive smiley (😊😄): show preset tags "What was great?" — Clean bus, Friendly staff, On time, Comfortable seat, Good food, Smooth driving
+- Negative smiley (😞😐): show optional text field + prominent "Submit a formal complaint" button linking to /submit
+
+BILINGUAL
+- English/Urdu toggle, same pattern as ComplaintForm.tsx, persisted in localStorage under "subhan-lang"
+
+DATABASE
+- Create a new table called trip_ratings
+- Create RPC function submit_rating() SECURITY DEFINER so anon can insert
+- Output the SQL migration separately — tell me clearly when I need to run it in Supabase SQL Editor before pushing
+
+ACCESS
+- /start and /rate pages fully public, no login required
+- force-dynamic + cache: no-store on route fetching
+
+Workflow: (1) fetch and read the design, (2) give me the SQL to run first, (3) implement the pages, (4) push to GitHub.

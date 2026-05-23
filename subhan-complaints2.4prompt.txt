@@ -1,0 +1,18 @@
+On the live Vercel deployment, the routes dropdown on /submit is not showing any routes. Locally it works fine.
+
+The issue is likely that the Supabase RLS policy for routes only allows authenticated users or the query is failing silently.
+
+Check the routes query in src/app/submit/page.tsx — make sure it is using the public anon client (not the server auth client) to fetch routes, since /submit is a public page with no login.
+
+Also check src/app/submit/ComplaintForm.tsx to see how routes are passed and displayed in the dropdown.
+
+If the server component is using createClient() from @/lib/supabase/server, that should still work for public data as long as the RLS policy allows anon access. Check the RLS policy for routes in schema.sql — it should say:
+
+CREATE POLICY "anyone can view active routes"
+  ON routes FOR SELECT TO anon, authenticated
+  USING (is_active = true);
+
+If the policy is correct, the issue may be that the server component is not awaiting the Supabase call correctly or the data is not being passed to the client component.
+
+Fix the issue and push:
+git add . && git commit -m "Fix routes not loading on public submit form" && git push

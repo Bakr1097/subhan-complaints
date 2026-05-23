@@ -866,6 +866,12 @@ export default function ComplaintForm({ routes }: Props) {
       return
     }
 
+    void fetch('/api/notify-complaint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: complaint.id }),
+    }).catch(() => {})
+
     setConfirmation({
       referenceNumber: complaint.reference_number,
       routeName:       routes.find(r => r.id === routeId)?.name ?? '',

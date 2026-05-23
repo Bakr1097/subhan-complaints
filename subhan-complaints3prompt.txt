@@ -1,0 +1,17 @@
+Add an Urdu/English language toggle to the public complaint form at /submit. Requirements:
+
+1. Toggle button at the top of the form (near the trust strip) showing "اردو | English" — tapping switches the entire form UI language. Default is English.
+
+2. When Urdu is active:
+- Set dir="rtl" on the form container
+- All labels, helper text, placeholders, section headers, category tile labels, button text switch to proper Urdu script
+- Text inputs stay LTR (phone numbers, bus numbers still type left to right)
+- The confirmation screen text also switches to Urdu
+
+3. Save the preference in localStorage under key "subhan-lang" so it persists across visits on the same phone/browser.
+
+4. Provide proper Urdu translations for all visible UI text — field labels, helper text, category names, subcategory names, section headers, submit button, confirmation screen, error messages.
+
+5. Zero changes to form logic, validation, or submission — visual/text layer only.
+
+Use proper Urdu script throughout (not Roman Urdu). RTL layout should apply to labels and headers only — inputs remain LTR.

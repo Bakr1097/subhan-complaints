@@ -1,0 +1,66 @@
+Build a new Analytics tab inside the existing /admin panel. Requirements:
+
+LOCATION
+- Add a new "Analytics" tab to the existing /admin page, alongside Staff, Routes, Audit Log
+- Default time range: Last 30 days, with a dropdown to switch between: Last 7 days, Last 30 days, Last 90 days, All time
+
+ACCESS CONTROL
+- ADMIN sees full analytics including "Complaints by Steward Name" section
+- STEWARD_HEAD sees all sections EXCEPT "Complaints by Steward Name" (hide that section entirely for them)
+- Unauthenticated users redirect to /login
+
+SECTIONS (in this order, scrollable layout):
+
+1. TOTAL COMPLAINTS — 4 stat tiles in a grid:
+   - Today
+   - This Week  
+   - This Month
+   - All Time
+
+2. RESOLUTION METRICS — 2 tiles:
+   - Resolution rate (% of complaints resolved or closed)
+   - Average resolution time (hours from created_at to resolved_at)
+
+3. OPEN COMPLAINTS PAST SLA — 1 large alert tile:
+   - Count of complaints still OPEN or INVESTIGATING past 48 hours
+   - Red if > 0, green if 0
+
+4. CSAT SCORE — 1 tile:
+   - % of resolved complaints with csat_response = SATISFIED out of those with any CSAT response
+
+5. SEVERITY BREAKDOWN — horizontal stacked bar or 3 tiles:
+   - % High, % Medium, % Low
+
+6. COMPLAINTS TREND — line chart, last 30 days (respects time range filter):
+   - X-axis: dates, Y-axis: complaint count per day
+   - Use recharts library
+
+7. COMPLAINTS BY CATEGORY — bar chart or ranked list:
+   - All categories, count of complaints per category, sorted descending
+
+8. COMPLAINTS BY ROUTE — ranked list:
+   - All routes, count of complaints per route, sorted descending (worst routes at top)
+
+9. COMPLAINTS BY BUS NUMBER — ranked list (top 10):
+   - Top 10 bus numbers with most complaints, count each
+
+10. COMPLAINTS BY DRIVER NAME — ranked list (top 10):
+    - Top 10 driver names with most complaints (only count complaints where driver_name is not null)
+
+11. COMPLAINTS BY STEWARD NAME — ranked list (top 10) — ADMIN ONLY:
+    - Top 10 steward names with most complaints (only count complaints where steward_name is not null)
+    - Do not render this section if logged-in user role is STEWARD_HEAD
+
+DATA QUERIES
+- Use Supabase client to fetch complaints data
+- Respect the time range filter on all metrics where it makes sense (don't filter "all time" total)
+- Use efficient queries — group/aggregate on the database where possible
+
+STYLING
+- Match existing admin panel styling (same shadcn/ui components, same emerald theme)
+- Mobile responsive — stat tiles stack on mobile, charts scroll horizontally if needed
+- Empty states: if no complaints exist for a section, show "No data yet"
+
+Use recharts for charts (already in the project if not, install it). No PDF export needed for v1.
+
+Confirm when done and pushed to GitHub.

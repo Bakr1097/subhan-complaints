@@ -1,0 +1,63 @@
+Plan approved with ONE security adjustment: the API route must NOT trust 
+the client's POST body for complaint details. Instead, the client sends 
+ONLY the complaint id, and the API route fetches the real complaint 
+server-side using the service role client. This makes notifications 
+spoof-proof and makes the is_about_steward_head routing tamper-proof.
+
+Implement these four changes:
+
+1. NEW src/lib/notifications/callmebot.ts
+   - Export async function sendComplaintNotification(complaint) that takes 
+     the fetched complaint row + route name
+   - Fires two Callmebot GET requests (one per number) using:
+     https://api.callmebot.com/whatsapp.php?phone=[PHONE]&text=[ENCODED]&apikey=[KEY]
+   - Reads CALLMEBOT_PHONE_1/APIKEY_1 (steward head) and 
+     CALLMEBOT_PHONE_2/APIKEY_2 (admin) from server env vars
+   - If complaint.is_about_steward_head === true, send ONLY to PHONE_2 (admin)
+   - Each call wrapped in its own try/catch — one failing must not stop the 
+     other. Log success/failure to console.
+   - URL-encode the message text properly
+   - Message format (Roman Urdu + English):
+     "Nayi complaint mili hai.
+     Ref: [reference_number]
+     Severity: [severity]
+     Route: [route name]
+     Bus: [bus_number]
+     Category: [category]
+     [NEXT_PUBLIC_SITE_URL or live URL]/staff/complaint/[id]"
+
+2. NEW src/app/api/notify-complaint/route.ts (POST)
+   - Reads { id } from the request body — nothing else
+   - Uses the service role client (src/lib/supabase/admin.ts) to fetch the 
+     complaint by id, joining/looking up the route name
+   - If no complaint found, return 200 silently (do nothing — never error)
+   - Calls sendComplaintNotification with the fetched, trusted data
+   - Always returns 200 regardless of notification outcome
+   - Wrap everything in try/catch — never throw
+
+3. EDIT .env.local — add 4 placeholder vars:
+   CALLMEBOT_PHONE_1=
+   CALLMEBOT_APIKEY_1=
+   CALLMEBOT_PHONE_2=
+   CALLMEBOT_APIKEY_2=
+   (Also check if NEXT_PUBLIC_SITE_URL exists; if not, add it set to 
+   https://subhan-complaints.vercel.app so the message link is correct.)
+   Remind me to add all of these to Vercel env settings.
+
+4. EDIT src/app/submit/ComplaintForm.tsx
+   - After the submit_complaint RPC succeeds and returns the id, add a 
+     fire-and-forget call:
+     void fetch('/api/notify-complaint', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({ id: <the returned complaint id> })
+     }).catch(() => {});
+   - This must NOT be awaited and must NOT block the redirect to the 
+     confirmation page. Passenger sees confirmation regardless.
+
+IMPORTANT
+- Do not change the submit_complaint RPC, RLS, or any existing submission 
+  logic. Only add on top.
+- Notification failure must be completely silent to the passenger.
+- After implementing, tell me exactly what to register on Callmebot and 
+  what to paste into .env.local and Vercel.

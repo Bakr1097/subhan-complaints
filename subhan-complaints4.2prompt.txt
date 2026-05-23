@@ -1,0 +1,28 @@
+Add trip ratings to the existing admin analytics dashboard (src/app/admin/AnalyticsTab.tsx). Do NOT build a separate dashboard or page.
+
+ACCESS:
+- Both ADMIN and STEWARD_HEAD can see the ratings data (steward head already has access to the Analytics tab — same access applies here)
+- Ratings come from the trip_ratings table. Since RLS is enabled on trip_ratings, add a SELECT policy allowing authenticated staff (ADMIN and STEWARD_HEAD) to read all rows. Give me the SQL for this policy to run in Supabase.
+
+STRUCTURE:
+Add a new "Ratings" tab/section within the analytics dashboard, separate from the existing complaints sections. It should respect the same time-range filter the rest of the dashboard already uses.
+
+RATINGS SECTIONS (in this order):
+1. Average rating — the headline number (1-4 scale), shown large
+2. Total ratings collected in the selected time range
+3. Rating distribution — count of each rating value (how many 1s, 2s, 3s, 4s) as a bar breakdown
+4. Trend over time — average rating per day/week across the selected range
+5. By route — average rating and count per route
+6. By bus — average rating and count per bus number
+7. Top positive tags — ranked list of positive_tags with counts (e.g. "Clean bus (124), Friendly staff (98)..."). These come only from positive ratings.
+8. Negative comments feed — the feedback_text from low ratings (1 and 2), most recent first, showing the comment, route, bus, and date
+
+ROUTE HEALTH (combined section):
+Add a "Route Health" section that brings ratings and complaints together per route in one view:
+- For each route show: average rating, total ratings, total complaints, open complaints
+- This lets the owner judge route quality from both the positive signal (ratings) and negative signal (complaints) in one place
+
+NOTES:
+- Keep positive tags and complaint subcategories as separate sections — do not merge them into one chart, they measure different things
+- Match the existing styling and chart components already used in AnalyticsTab.tsx
+- Mobile-first, since the owner reviews on his phone

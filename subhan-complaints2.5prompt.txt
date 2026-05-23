@@ -1,0 +1,51 @@
+I have a design handoff document for the public complaint form. Read the file DESIGN-HANDOFF.md located at C:\Users\Salman\Desktop\New Subhan Complaints App\DESIGN-HANDOFF.md and follow it exactly.
+
+CRITICAL RULES — DO NOT VIOLATE:
+
+1. PRESERVE ALL EXISTING TEXT exactly as it currently appears in src/app/submit/ComplaintForm.tsx. This includes:
+   - All form field labels (English + Roman Urdu helper text)
+   - All placeholder text
+   - All category names
+   - All subcategory names
+   - All error/validation messages
+   - All button text
+   - All hint text
+   
+   If the design handoff suggests different text than what is currently in the file, KEEP the current text. The design handoff is for VISUAL styling only — colors, fonts, spacing, layout, components — NOT for changing copy.
+
+2. PRESERVE ALL EXISTING LOGIC. Do not change:
+   - Supabase RPC calls (submit_complaint)
+   - Phone validation and formatting (validatePhone, formatPhoneDisplay)
+   - QR pre-fill logic
+   - Photo compression (compressImage, 5MB limit)
+   - Severity auto-assignment
+   - is_about_steward_head flag logic
+   - Driver/Steward subcategory state
+   - Form validation
+   - Confirmation screen routing
+   - Any new fields added since the design was drafted
+
+3. ONLY change the visual layer:
+   - Update globals.css with the new color tokens (Service theme: emerald + cream)
+   - Add Geist + Geist Mono fonts via next/font/google in layout.tsx
+   - Restyle all components (inputs, buttons, category tiles, subcategory pills, journey strip, etc.) per the handoff
+   - Restructure layout if needed (trust strip, hero block, sections, submit dock, etc.)
+   - Apply the receipt-style confirmation screen design
+
+4. The reference files (Complaint form.html, complaint-form.jsx, themes.jsx, icons.jsx) are NOT in the project — they were design artifacts. Use the DESIGN-HANDOFF.md document as the single source of truth for the design. For icons, use lucide-react equivalents as the handoff suggests (Bus, Car, UserCheck, UtensilsCrossed, Clock, Ticket, AlertTriangle, Lightbulb, Camera, Check, ChevronRight, Hash, Shield, Share, X, MapPin, Sparkles).
+
+5. After applying the design, run the verification checklist at the end of DESIGN-HANDOFF.md to ensure everything still works.
+
+6. Apply this ONLY to src/app/submit/ComplaintForm.tsx (the public form). Do NOT touch:
+   - src/app/staff/log-complaint/LogComplaintForm.tsx
+   - src/app/staff/dashboard/DashboardClient.tsx
+   - src/app/admin/AdminPanel.tsx
+   - src/app/staff/complaint/[id]/ComplaintDetail.tsx
+   - Any other page
+   
+   We will redesign those separately later.
+
+When done, push:
+git add . && git commit -m "Apply visual redesign to public complaint form per design handoff" && git push
+
+Confirm when done.

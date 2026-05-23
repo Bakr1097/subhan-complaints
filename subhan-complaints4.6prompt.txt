@@ -1,0 +1,51 @@
+We're replacing the Resend email notification system with ntfy.sh push 
+notifications. ntfy is a free, no-account push notification service. 
+A simple HTTP POST to their public server delivers a push notification 
+to all phones subscribed to a topic.
+
+REMOVE the Resend implementation:
+- Delete src/lib/notifications/email.ts
+- Run: npm uninstall resend
+- Remove RESEND_API_KEY, NOTIFY_EMAIL_1, NOTIFY_EMAIL_2 from .env.local
+- Keep NEXT_PUBLIC_SITE_URL
+
+IMPLEMENT:
+
+1. NEW src/lib/notifications/ntfy.ts
+   - Export async function sendComplaintNotification(complaint + route name)
+   - Sends ONE POST request to https://ntfy.sh/[NTFY_TOPIC]
+   - Reads NTFY_TOPIC from server env vars
+   - Request headers:
+     Title: "Nayi Complaint: [reference_number]"
+     Priority: "high" if severity is HIGH, "default" otherwise
+     Tags: "rotating_light" if HIGH, "bell" otherwise
+     Content-Type: text/plain
+   - Request body (plain text):
+     "Severity: [severity]
+     Route: [route name]
+     Bus: [bus_number]
+     Category: [category]
+     [NEXT_PUBLIC_SITE_URL]/staff/complaint/[id]"
+   - Special rule: if complaint.is_about_steward_head === true, skip 
+     sending entirely and just log "Skipped ntfy — is_about_steward_head" 
+     (we will handle admin-only notifications later)
+   - Wrap in try/catch — failure must never throw or block anything
+   - Log success/failure to console
+
+2. EDIT src/app/api/notify-complaint/route.ts
+   - Keep existing secure design: reads ONLY { id } from body, fetches 
+     complaint server-side via service role client
+   - Swap email notification call for new sendComplaintNotification 
+     from ntfy.ts
+   - Still always returns 200, never throws
+
+3. EDIT .env.local — remove old vars, add:
+   NTFY_TOPIC=subhan-cmp-8847
+   (Remind me to add this to Vercel and redeploy.)
+
+4. ComplaintForm.tsx fire-and-forget POST stays exactly as is — no change.
+
+IMPORTANT
+- Do not touch submit_complaint RPC, RLS, or submission logic
+- Notification failure stays completely silent to the passenger
+- After implementing, tell me exactly what to add to Vercel

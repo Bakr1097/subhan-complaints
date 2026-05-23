@@ -1,0 +1,17 @@
+Add a steward quick mode to /rate. This is a mode used by the steward between trips to quickly collect passenger ratings — not the public self-service mode.
+
+Access:
+- Steward mode is entered by tapping a small "Steward Mode" link/button on /rate, which prompts for a 4-digit PIN
+- The PIN is a single shared code stored as an environment variable (NEXT_PUBLIC_STEWARD_PIN — ask me to set it). Wrong PIN denies entry
+- Once entered correctly, steward mode stays active for the session
+- This PIN is a mode separator to keep passengers from accidentally landing in steward mode — it is not high security
+
+How steward mode works:
+- The steward sets route and bus number once at the start — these fields lock and persist for the whole session
+- After each submission the form instantly resets back to the smiley selector — route and bus stay filled, everything else clears
+- A small counter shows how many ratings collected this session (e.g. "5 ratings collected")
+- Travel date is always today, hidden from view
+- Departure time, passenger name, and phone are all hidden — not needed in this mode
+- The thank-you screen is skipped entirely — after submit it resets instantly, ready for the next passenger
+- A "New Trip" / "Reset Session" button clears the locked route/bus and resets the counter
+- Exiting steward mode returns to normal passenger mode

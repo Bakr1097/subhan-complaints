@@ -1,0 +1,57 @@
+Restructure the complaint categories. Currently there is one "Driver / Steward" category. Split it into TWO separate categories: "Driver" and "Steward". Both old DRIVER_STEWARD complaints should remain readable but new complaints should use the new structure.
+
+DATABASE CHANGES (run in Supabase SQL editor — give me the SQL):
+
+1. Add two new values to complaint_category enum:
+   - DRIVER
+   - STEWARD
+   (Keep DRIVER_STEWARD in the enum so old data still works.)
+
+2. Add three new columns to the complaints table:
+   - driver_subcategory text NULL — values: RECKLESS_DRIVING, MOBILE_USE, RUDE_BEHAVIOR, OTHER
+   - steward_subcategory text NULL — values: RUDE_BEHAVIOR, UNRESPONSIVE, NOT_SERVING_PROPERLY, OTHER
+   - driver_name text NULL
+   - steward_name text NULL
+
+CODE CHANGES:
+
+3. Public form (src/app/submit/ComplaintForm.tsx):
+   - Replace the single "Driver / Steward" button with two separate buttons: "Driver" (🚗) and "Steward" (🧑‍✈️)
+   - When Driver is selected, show:
+     * 4 subcategory buttons: "Reckless / dangerous driving", "Mobile phone use while driving", "Rude behavior", "Other"
+     * Optional text field: "Driver name (if known)" with Roman Urdu helper text "Agar yaad ho — ticket ya bus ke andar likha hota hai"
+   - When Steward is selected, show:
+     * 4 subcategory buttons: "Rude behavior", "Unresponsive / not helping", "Not serving properly", "Other"
+     * Optional text field: "Steward name (if known)" with same Roman Urdu helper
+     * Keep the existing "Complaint about steward head" checkbox under Steward (not under Driver)
+
+4. Staff log form (src/app/staff/log-complaint/LogComplaintForm.tsx):
+   - Same changes as above — split into two buttons with their own subcategories and name fields
+
+5. Severity auto-assignment:
+   - DRIVER category → HIGH severity (safety)
+   - STEWARD category → MEDIUM severity
+   - Update the severity logic in submit_complaint RPC function and any client-side logic
+
+6. Complaint detail view (src/app/staff/complaint/[id]/ComplaintDetail.tsx):
+   - Display the new fields: driver_subcategory, steward_subcategory, driver_name, steward_name when present
+   - For old DRIVER_STEWARD complaints, keep showing them as before
+   - Show driver_name or steward_name prominently if filled
+
+7. Dashboard (src/app/staff/dashboard/DashboardClient.tsx):
+   - Update category filter dropdown to include both new categories (DRIVER and STEWARD) plus keep DRIVER_STEWARD as a legacy option for old complaints
+   - Make sure category badges display correctly for new categories
+
+8. Audit log entries should record the new subcategory and name values when complaints are created
+
+Also fix mobile layout issues on the /submit form on iPhone:
+- Phone number field overflowing
+- Travel date field going outside screen
+- Departure time field going outside screen
+- Add w-full and max-w-full to all input fields
+- Add overflow-hidden where appropriate to prevent horizontal scroll on 375px width screens
+
+Give me the SQL to run in Supabase FIRST, then make the code changes, then push:
+git add . && git commit -m "Split Driver/Steward into separate categories, add name fields, fix mobile layout" && git push
+
+Confirm when done.

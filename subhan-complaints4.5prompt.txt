@@ -1,0 +1,68 @@
+We're replacing the Telegram notification system with email via Resend.com. 
+Resend is free up to 3,000 emails/month, has a simple REST API, and requires 
+no special setup beyond an API key.
+
+REMOVE the Telegram implementation:
+- Delete src/lib/notifications/telegram.ts
+- Remove TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_ADMIN_CHAT_ID 
+  from .env.local
+- Keep NEXT_PUBLIC_SITE_URL
+
+INSTALL Resend:
+- Run: npm install resend
+- This is the official Resend SDK, no other packages needed
+
+IMPLEMENT:
+
+1. NEW src/lib/notifications/email.ts
+   - Export async function sendComplaintNotification(complaint + route name)
+   - Uses Resend SDK to send email
+   - Reads these env vars:
+     RESEND_API_KEY — Resend API key
+     NOTIFY_EMAIL_1 — steward head's email address
+     NOTIFY_EMAIL_2 — admin email address (Muhammad)
+   - Special rule: if complaint.is_about_steward_head === true, send ONLY 
+     to NOTIFY_EMAIL_2 (admin), not to steward head
+   - Otherwise send to both addresses
+   - Send as two separate emails (one per recipient) so each person gets 
+     their own copy
+   - Wrap each in try/catch — one failing must not stop the other
+   - Log success/failure to console
+   - From address: "Subhan Complaints <onboarding@resend.dev>"
+   - Subject: "Nayi Complaint: [reference_number] — [severity] Severity"
+   - Email body (plain text is fine, no HTML needed):
+     "Nayi complaint mili hai.
+
+     Ref: [reference_number]
+     Severity: [severity]
+     Route: [route name]
+     Bus: [bus_number]
+     Category: [category]
+     Date: [travel_date]
+     Departure: [departure_time]
+
+     View complaint:
+     [NEXT_PUBLIC_SITE_URL]/staff/complaint/[id]
+
+     — Subhan Complaints System"
+
+2. EDIT src/app/api/notify-complaint/route.ts
+   - Keep the existing secure design: reads ONLY { id } from body, fetches 
+     complaint server-side via service role client
+   - Swap the previous notification call for the new 
+     sendComplaintNotification from email.ts
+   - Still always returns 200, never throws
+
+3. EDIT .env.local — remove old vars, add:
+   RESEND_API_KEY=
+   NOTIFY_EMAIL_1=        ← steward head's email
+   NOTIFY_EMAIL_2=        ← your email (Muhammad)
+   (Remind me to add all three to Vercel and redeploy.)
+
+4. ComplaintForm.tsx fire-and-forget POST stays exactly as is — no change.
+
+IMPORTANT
+- Do not touch submit_complaint RPC, RLS, or submission logic
+- Email failure must be completely silent to the passenger
+- After implementing, tell me exactly what to paste into .env.local 
+  and Vercel

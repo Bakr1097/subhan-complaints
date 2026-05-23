@@ -1,0 +1,63 @@
+We need to add WhatsApp notifications via Callmebot when a new complaint 
+is submitted. Two staff numbers should receive the notification: the 
+steward head and the admin (me).
+
+BACKGROUND ON CALLMEBOT
+Callmebot is a free service that sends WhatsApp messages via a simple GET 
+request. Each recipient must register once by saving the Callmebot number 
+to contacts and sending it an activation message — this returns a unique 
+API key per number. I will do this registration manually and provide you 
+the two phone numbers and their two API keys to put in environment 
+variables. Do NOT hardcode them.
+
+The Callmebot send URL format is:
+https://api.callmebot.com/whatsapp.php?phone=[PHONE]&text=[URL_ENCODED_TEXT]&apikey=[APIKEY]
+
+REQUIREMENTS
+
+1. Environment variables (add to .env.local and remind me to add to Vercel):
+   - CALLMEBOT_PHONE_1 (steward head number, format 923XXXXXXXXX, no +)
+   - CALLMEBOT_APIKEY_1
+   - CALLMEBOT_PHONE_2 (admin number)
+   - CALLMEBOT_APIKEY_2
+
+2. Create a server-side notification function at src/lib/notifications/callmebot.ts
+   - A function sendComplaintNotification(complaint details) that fires 
+     two Callmebot GET requests, one per number
+   - Must be server-side only (uses server env vars, never exposed to client)
+   - Wrap each call in try/catch — if one number fails, the other still 
+     sends, and a failure must NEVER block or break complaint submission
+   - Log success/failure to console for debugging
+   - URL-encode the message text properly
+
+3. Message format (keep short, Roman Urdu + English):
+   "Nayi complaint mili hai.
+   Ref: [reference_number]
+   Severity: [severity]
+   Route: [route name]
+   Bus: [bus_number]
+   Category: [category]
+   [live URL]/staff/complaint/[id]"
+
+4. Wire it in:
+   - The complaint is currently inserted via the submit_complaint RPC 
+     (SECURITY DEFINER) called from the public form. The Callmebot call 
+     must happen AFTER a successful insert, server-side.
+   - Find the right server-side point in the submission flow to call 
+     sendComplaintNotification. If submission currently happens client-side 
+     via the RPC, propose the cleanest way to trigger the notification 
+     server-side (e.g. a Next.js API route or server action) WITHOUT 
+     breaking the existing public RLS flow. Confirm your approach with me 
+     before implementing.
+
+5. Special routing rule:
+   - If is_about_steward_head = true, send ONLY to CALLMEBOT_PHONE_2 (admin), 
+     NOT to the steward head.
+
+IMPORTANT
+- Do not change the existing submission logic or RLS. Only add notification 
+  on top.
+- Notification failure must be silent to the passenger — they should always 
+  see their confirmation page regardless.
+- Confirm your implementation plan with me BEFORE writing code, especially 
+  the server-side trigger point.

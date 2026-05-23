@@ -1,0 +1,15 @@
+In AnalyticsTab.tsx, update the "Complaints by Category" section to show subcategory breakdown under each category. Requirements:
+
+1. Each category row expands to show its subcategories indented below it, with complaint counts and a relative fill bar
+2. Layout: Category name (bold, full count) → indented subcategory rows below it (lighter text, smaller)
+3. Apply to all categories that have subcategories:
+   - Driver: driver_subcategory (RECKLESS_DRIVING, MOBILE_USE, RUDE_BEHAVIOR, OTHER)
+   - Steward: steward_subcategory (RUDE_BEHAVIOR, UNRESPONSIVE, NOT_SERVING_PROPERLY, OTHER)
+   - Bus Condition: bus_condition_subcategory (AC_HEATING, ENTERTAINMENT_TABLET, SEAT, CLEANLINESS)
+   - Delay/Timing: delay_subcategory (LATE_DEPARTURE, LATE_ARRIVAL, EXCESSIVE_STOPS)
+4. Categories with no subcategories (Food/Drinks, Ticket/Refund, Other/Serious, Suggestion/Feedback) just show the total count as before
+5. Subcategory counts should also respect the time range filter
+6. Display subcategory enum values in readable format (e.g. RECKLESS_DRIVING → "Reckless Driving", AC_HEATING → "AC / Heating")
+7. Only show subcategory rows where count > 0 — hide empty ones
+
+No changes to any other section. Confirm when pushed.
