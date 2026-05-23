@@ -5,7 +5,7 @@ type ComplaintRow = {
   bus_number: string | null
   category: string
   is_about_steward_head: boolean
-  routes: { name: string } | null
+  routes: { name: string }[] | null
 }
 
 export async function sendComplaintNotification(complaint: ComplaintRow) {
@@ -23,7 +23,7 @@ export async function sendComplaintNotification(complaint: ComplaintRow) {
   }
 
   const isHigh    = complaint.severity === 'HIGH'
-  const routeName = complaint.routes?.name ?? 'Unknown'
+  const routeName = complaint.routes?.[0]?.name ?? 'Unknown'
 
   const body = `Severity: ${complaint.severity}
 Route: ${routeName}
