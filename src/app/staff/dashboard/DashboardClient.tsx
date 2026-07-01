@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
-import { LogOut, RefreshCw, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { LogOut, RefreshCw, ChevronLeft, ChevronRight, Plus, BarChart3 } from 'lucide-react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -302,15 +302,13 @@ export default function DashboardClient({ userName, userRole, routes }: Props) {
               <Plus size={15} />
               <span className="hidden sm:inline">Log Complaint</span>
             </button>
-            {userRole === 'ADMIN' && (
-              <button
-                onClick={() => router.push('/admin')}
-                className="flex items-center gap-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 px-3 py-2 rounded-xl"
-              >
-                <span className="hidden sm:inline">Admin</span>
-                <span className="sm:hidden">⚙️</span>
-              </button>
-            )}
+            <button
+              onClick={() => router.push('/admin')}
+              className="flex items-center gap-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 px-3 py-2 rounded-xl"
+            >
+              <BarChart3 size={15} />
+              <span className="hidden sm:inline">Analytics</span>
+            </button>
             <button
               onClick={handleLogout}
               className="flex items-center gap-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 px-3 py-2 rounded-xl"
