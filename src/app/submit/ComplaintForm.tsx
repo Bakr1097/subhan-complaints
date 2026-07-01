@@ -1175,15 +1175,7 @@ export default function ComplaintForm({ routes }: Props) {
         <div className="pt-8">
           <SectionHeader title={t('tripTitle')} caption={t('tripCaption')} />
 
-          <JourneyStrip
-            routeName={routes.find(r => r.id === routeId)?.name ?? ''}
-            travelDate={travelDate}
-            departureTime={departureTime}
-            busNumber={busNumber}
-            labels={{ journey: t('journeyLabel'), departure: t('departureLabel'), busNo: t('busNoLabel') }}
-          />
-
-          <div className="space-y-4 mt-4">
+          <div className="space-y-4">
 
             {/* Route */}
             <div>
@@ -1279,6 +1271,16 @@ export default function ComplaintForm({ routes }: Props) {
               <FieldError msg={errors.busNumber} />
             </div>
 
+          </div>
+
+          <div className="mt-4">
+            <JourneyStrip
+              routeName={routes.find(r => r.id === routeId)?.name ?? ''}
+              travelDate={travelDate}
+              departureTime={departureTime}
+              busNumber={busNumber}
+              labels={{ journey: t('journeyLabel'), departure: t('departureLabel'), busNo: t('busNoLabel') }}
+            />
           </div>
         </div>
 
