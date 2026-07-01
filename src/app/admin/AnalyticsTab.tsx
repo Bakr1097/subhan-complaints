@@ -301,7 +301,7 @@ export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWAR
 
   // ── Ratings: R3 — distribution ───────────────────────────
 
-  const ratingDist = ([4, 3, 2, 1] as const).map(v => ({
+  const ratingDist = ([5, 4, 3, 2, 1] as const).map(v => ({
     value: v,
     count: filteredRatings.filter(r => r.rating === v).length,
   }))
@@ -631,7 +631,7 @@ export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWAR
                 <p className="text-[44px] font-bold leading-none tabular-nums text-primary">
                   {avgRating.toFixed(1)}
                 </p>
-                <p className="text-[11px] text-gray-400 mt-1">out of 4</p>
+                <p className="text-[11px] text-gray-400 mt-1">out of 5</p>
               </>
             ) : (
               <p className="text-[28px] font-bold text-gray-300">—</p>
@@ -660,7 +660,7 @@ export default function AnalyticsTab({ userRole }: { userRole: 'ADMIN' | 'STEWAR
               <LineChart data={ratingTrend} margin={{ top: 4, right: 8, left: -22, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                 <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} interval={ratingTrendInterval} tickLine={false} axisLine={false} />
-                <YAxis domain={[1, 4]} ticks={[1, 2, 3, 4]} tick={{ fontSize: 10, fill: '#9ca3af' }} tickLine={false} axisLine={false} />
+                <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} tick={{ fontSize: 10, fill: '#9ca3af' }} tickLine={false} axisLine={false} />
                 <Tooltip
                   contentStyle={TOOLTIP_STYLE}
                   labelStyle={TOOLTIP_LABEL}
@@ -865,6 +865,7 @@ function EmptyState() {
 function RatingDistBar({ value, count, max }: { value: number; count: number; max: number }) {
   const pct = max > 0 ? (count / max) * 100 : 0
   const cfg: Record<number, { label: string; bar: string; text: string }> = {
+    5: { label: '★★★★★ Excellent', bar: 'bg-emerald-600', text: 'text-emerald-800' },
     4: { label: '★★★★ Great', bar: 'bg-emerald-500', text: 'text-emerald-700' },
     3: { label: '★★★ Good',  bar: 'bg-green-400',   text: 'text-green-700'   },
     2: { label: '★★  Okay',  bar: 'bg-amber-400',   text: 'text-amber-700'   },
@@ -885,7 +886,7 @@ function RatingDistBar({ value, count, max }: { value: number; count: number; ma
 function RatingRankedRow({ rank, label, avg, count }: {
   rank: number; label: string; avg: number; count: number
 }) {
-  const color = avg >= 3.5 ? 'text-emerald-600' : avg >= 2.5 ? 'text-green-600' : avg >= 1.5 ? 'text-amber-600' : 'text-red-600'
+  const color = avg >= 4 ? 'text-emerald-600' : avg >= 3 ? 'text-green-600' : avg >= 2 ? 'text-amber-600' : 'text-red-600'
   return (
     <div className="flex items-center gap-3 py-1.5 border-b border-gray-50 last:border-0">
       <span className="text-[11px] font-bold text-gray-300 w-5 text-right shrink-0">{rank}</span>
@@ -922,9 +923,9 @@ function RouteHealthRow({ name, avgRating, totalRatings, totalComplaints, openCo
   totalComplaints: number; openComplaints: number
 }) {
   const rColor = avgRating === null ? 'text-gray-300'
-    : avgRating >= 3.5 ? 'text-emerald-600'
-    : avgRating >= 2.5 ? 'text-green-600'
-    : avgRating >= 1.5 ? 'text-amber-600'
+    : avgRating >= 4 ? 'text-emerald-600'
+    : avgRating >= 3 ? 'text-green-600'
+    : avgRating >= 2 ? 'text-amber-600'
     : 'text-red-600'
 
   return (

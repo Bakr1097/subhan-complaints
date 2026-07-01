@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
-  Frown, Meh, Smile, Laugh,
+  Frown, Meh, Smile, Laugh, Heart,
   Sparkles, UserCheck, Clock, Armchair, UtensilsCrossed, Wind,
   Shield, ChevronRight, Hash, AlertTriangle, Star,
   Bus, Check, Share2, Route,
@@ -33,6 +33,7 @@ const SMILEYS = [
   { value: 2, label: 'Okay',      urdu: 'Theek',     Icon: Meh   },
   { value: 3, label: 'Good',      urdu: 'Acha',      Icon: Smile },
   { value: 4, label: 'Great',     urdu: 'Behtareen', Icon: Laugh },
+  { value: 5, label: 'Excellent', urdu: 'Zabardast', Icon: Heart },
 ] as const
 
 const POSITIVE_TAGS = [
@@ -65,6 +66,7 @@ function parseRouteName(name: string) {
 }
 
 function reactionBg(rating: number): string {
+  if (rating === 5) return '#0B3D33'
   if (rating === 4) return '#0F5D4E'
   if (rating === 3) return '#3E8E73'
   if (rating === 2) return '#B47339'
@@ -73,6 +75,7 @@ function reactionBg(rating: number): string {
 }
 
 function reactionFg(rating: number): string {
+  if (rating === 5) return '#F7F3E9'
   if (rating === 4) return '#F7F3E9'
   if (rating === 3) return '#F4FBF8'
   if (rating === 2) return '#FFF6EB'
@@ -166,7 +169,7 @@ function SmileySelector({
   return (
     <div className="px-5 py-2" data-smiley-row>
       <div
-        className="grid grid-cols-4 gap-2"
+        className="grid grid-cols-5 gap-2"
         style={{ animation: shake ? 'shakeNudge 380ms cubic-bezier(.36,.07,.19,.97) both' : undefined }}
       >
         {SMILEYS.map((s) => {
@@ -523,11 +526,11 @@ function SubmitDock({
   const fg      = enabled ? reactionFg(rating) : '#9AA59C'
 
   const label = !rating ? 'Submit rating'
-    : rating >= 3 ? (rating === 4 ? 'Send rating' : 'Send rating')
+    : rating >= 4 ? 'Send rating'
     : 'Send feedback'
 
   const caption = !rating ? 'Pick a face to continue'
-    : rating === 4 ? 'Thank you — we love this'
+    : rating >= 4 ? 'Thank you — we love this'
     : rating === 3 ? 'We share these with the team weekly'
     : 'Thank you for telling us'
 
@@ -553,7 +556,7 @@ function SubmitDock({
         ) : (
           <>
             <span>{label}</span>
-            {rating === 4 && <Star size={14} fill="currentColor" className="mr-0.5" />}
+            {rating >= 4 && <Star size={14} fill="currentColor" className="mr-0.5" />}
             {enabled && <ChevronRight size={18} />}
           </>
         )}
@@ -823,7 +826,7 @@ function ThanksPositive({
   travelDate: string; busNumber: string; busUnknown: boolean
   onAnother: () => void; onDone: () => void
 }) {
-  const HeroIcon = rating === 4 ? Laugh : Smile
+  const HeroIcon = rating === 5 ? Heart : rating === 4 ? Laugh : Smile
   const parsed   = route ? parseRouteName(route.name) : null
   const selectedTags = POSITIVE_TAGS.filter(t => tags.includes(t.value))
 
@@ -896,7 +899,7 @@ function ThanksPositive({
           </div>
           <div className="flex justify-between mt-3 pt-2.5 border-t border-dashed border-[#C9C0A8] font-mono-brand text-[12px] text-muted-foreground tracking-[0.06em]">
             <span>BUS #{busUnknown ? '?' : busNumber}</span>
-            <span>★ {rating}/4</span>
+            <span>★ {rating}/5</span>
           </div>
         </div>
       )}
@@ -1096,8 +1099,8 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
     setErrors(e => { if (!e[key]) return e; const n = { ...e }; delete n[key]; return n })
   }, [])
 
-  const isPositive = rating >= 3
-  const isNegative = rating > 0 && rating <= 2
+  const isPositive = rating >= 4
+  const isNegative = rating > 0 && rating <= 3
 
   function handlePinSuccess() {
     setStewardMode(true)
@@ -1200,8 +1203,8 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
         p_departure_time: stewardMode ? (stewardTime || null) : (departureTime || null),
         p_bus_number:     busUnknown ? null : busNumber.trim(),
         p_bus_unknown:    busUnknown,
-        p_positive_tags:  rating >= 3 ? tags : [],
-        p_feedback_text:  rating <= 2 ? feedbackText.trim() : '',
+        p_positive_tags:  rating >= 4 ? tags : [],
+        p_feedback_text:  rating <= 3 ? feedbackText.trim() : '',
         p_phone:          phone.trim() ? `+92${phone.trim().replace(/\D/g, '').replace(/^0/, '')}` : null,
         p_name:           name.trim() || null,
         p_source:         hasQrParams ? 'qr' : 'direct',
@@ -1218,7 +1221,7 @@ export default function RatingForm({ routes }: { routes: RouteOption[] }) {
         setFeedbackText('')
         setErrors({})
       } else {
-        setScreen(rating >= 3 ? 'thanks-pos' : 'thanks-neg')
+        setScreen(rating >= 4 ? 'thanks-pos' : 'thanks-neg')
       }
     } catch (err) {
       console.error(err)
